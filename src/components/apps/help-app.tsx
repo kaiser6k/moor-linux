@@ -3,8 +3,12 @@ import { DISCORD_URL, DOCS_URL, GITHUB_URL } from "@/lib/apps";
 
 const SECTIONS = [
   {
-    title: "Docked session",
-    body: "Add Moor to the Home Screen, plug USB-C into a display, start a session. Wide viewports open the desktop automatically.",
+    title: "Docked session (DeX)",
+    body: "Add Moor to the Home Screen, plug USB-C into a display, start a session. Floating windows, dock, and Activities are the DeX-style desktop. iOS stays underneath — Apple does not let an app replace the kernel.",
+  },
+  {
+    title: "Debian userspace (Ubuntu-class)",
+    body: "Open Debian from the dock, then Launch Debian. That window is a real x86 Debian machine in WebAssembly: bash, apt, gcc, python, vim. First boot downloads the disk and keeps your changes in this browser.",
   },
   {
     title: "Save onto the phone",
@@ -23,7 +27,7 @@ const SECTIONS = [
 export function HelpApp() {
   return (
     <div className="h-full overflow-auto bg-bg p-5">
-      <p className="text-xs font-medium tracking-widest text-primary uppercase">Moor Linux 1.2</p>
+      <p className="text-xs font-medium tracking-widest text-primary uppercase">Moor Linux 1.3</p>
       <h1 className="mt-2 text-2xl font-semibold">Help</h1>
       <ul className="mt-6 space-y-4">
         {SECTIONS.map((s) => (

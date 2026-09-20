@@ -16,6 +16,7 @@ import { DiskApp } from "@/components/apps/disk-app";
 import { EditorApp } from "@/components/apps/editor-app";
 import { FilesApp } from "@/components/apps/files-app";
 import { HelpApp } from "@/components/apps/help-app";
+import { LinuxApp } from "@/components/apps/linux-app";
 import { MapsApp } from "@/components/apps/maps-app";
 import { MonitorApp } from "@/components/apps/monitor-app";
 import { MusicApp } from "@/components/apps/music-app";
@@ -37,6 +38,7 @@ import { useMoor, type Win } from "@/lib/store";
 const BODIES: Record<AppId, (win: Win) => ReactNode> = {
   welcome: () => <WelcomeApp />,
   terminal: (win) => <TerminalApp windowId={win.id} path={win.path} />,
+  linux: () => <LinuxApp />,
   files: () => <FilesApp />,
   editor: (win) => <EditorApp path={win.path} />,
   browser: () => <BrowserApp />,

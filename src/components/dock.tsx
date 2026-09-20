@@ -7,6 +7,7 @@ const DOCK_APPS: { id: AppId | "launcher"; label: string }[] = [
   { id: "launcher", label: "Launcher" },
   { id: "files", label: APP_META.files.title },
   { id: "terminal", label: APP_META.terminal.title },
+  { id: "linux", label: APP_META.linux.title },
   { id: "browser", label: APP_META.browser.title },
   { id: "software", label: APP_META.software.title },
   { id: "settings", label: APP_META.settings.title },

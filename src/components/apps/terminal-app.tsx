@@ -80,10 +80,10 @@ export function TerminalApp({ windowId, path }: { windowId: string; path?: strin
           {
             kind: "out",
             chunks: [
-              { t: "Moor Linux 1.2 — logged in as a regular user. Type ", c: "m" },
+              { t: "Moor Linux 1.3 — type ", c: "m" },
+              { t: "linux", c: "p" },
+              { t: " for Debian, or ", c: "m" },
               { t: "help", c: "p" },
-              { t: " or ", c: "m" },
-              { t: "neofetch", c: "p" },
               { t: ".\n", c: "m" },
             ],
           },

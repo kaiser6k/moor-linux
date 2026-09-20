@@ -66,6 +66,11 @@ const COMMANDS = [
   "vim",
   "nano",
   "apt",
+  "linux",
+  "debian",
+  "ubuntu",
+  "gcc",
+  "git",
   "sudo",
   "ps",
   "free",
@@ -139,7 +144,7 @@ function neofetch(ctx: ShellCtx): Chunk[] {
   const info: [string, string][] = [
     [`${user}@${host}`, ""],
     ["-----------", ""],
-    ["OS: ", "Moor Linux 1.2 (docked)"],
+    ["OS: ", "Moor Linux 1.3 (docked)"],
     ["Host: ", "iPhone · external display"],
     ["Kernel: ", "6.8.0-moor-wasm"],
     ["User: ", ctx.account?.uid === 0 ? "root (superuser)" : `${user} (uid ${ctx.account?.uid ?? 1000})`],
@@ -198,7 +203,7 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
           line("Moor shell — commands", "p"),
           line("help  clear  ls  cd  pwd  cat  echo  mkdir  touch  rm  tree"),
           line("whoami  id  groups  su  sudo  passwd  useradd"),
-          line("open  code  vim  htop  docker  python  history  reboot  exit"),
+          line("open  linux  debian  ubuntu  docker  python  history  reboot  exit"),
         ),
       };
     case "clear":
@@ -339,6 +344,11 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
         docker: "containers",
         users: "users",
         user: "users",
+        linux: "linux",
+        debian: "linux",
+        ubuntu: "linux",
+        bash: "linux",
+        apt: "linux",
         ".": "files",
       };
       const key = (args[0] ?? "files").toLowerCase();
@@ -381,10 +391,24 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
     case "df":
       return { chunks: line("Filesystem     Size  Used Avail Use%\nmoorfs         2.0G  180M  1.8G   9%") };
     case "apt":
-      if (args[0] === "update") return { chunks: line("Hit:1 https://repo.moor.local stable InRelease\nReading package lists... Done", "o") };
-      if (args[0] === "install")
-        return { chunks: line(`Package ${args[1] ?? "(none)"} is a desktop app. Try \`open ${args[1] ?? "files"}\`.`, "w") };
-      return { chunks: line("apt: try `apt update` or `apt install <name>`", "m") };
+      return {
+        chunks: joinChunks(
+          line("Moor's shell is the session. Real apt lives in Debian.", "p"),
+          line("Opening the Debian userspace…"),
+        ),
+        action: { type: "open", appId: "linux" },
+      };
+    case "python":
+    case "python3":
+    case "gcc":
+    case "clang":
+    case "pip":
+    case "pip3":
+    case "git":
+      return {
+        chunks: line(`Opening Debian for \`${cmd}\`…`, "m"),
+        action: { type: "open", appId: "linux" },
+      };
     case "sudo": {
       if (!args[0]) return { chunks: line("usage: sudo <command>", "m") };
       if (ctx.image || ctx.elevated || ctx.account?.uid === 0) return runCommand(args.join(" "), { ...ctx, elevated: true });
@@ -416,10 +440,14 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
     case "moor":
       return {
         chunks: joinChunks(
-          line("Moor — Linux, when the iPhone hits a display.", "p"),
-          line("A userspace desktop for USB-C / HDMI sessions."),
+          line("Moor — DeX-style desktop + Debian userspace.", "p"),
+          line("open linux   for apt, gcc, python, vim"),
         ),
       };
+    case "linux":
+    case "debian":
+    case "ubuntu":
+      return { chunks: line("opening Debian…", "m"), action: { type: "open", appId: "linux" } };
     case "docker":
     case "podman": {
       const sub = args[0];
@@ -441,15 +469,6 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
           line("iOS will not give that to an app. Moor emulates those namespaces in Containers."),
         ),
       };
-    case "python":
-    case "python3": {
-      if (ctx.image !== "python") return { chunks: line("python: not installed in this namespace. Run the python image.", "d") };
-      const expr = args.join(" ").trim();
-      if (!expr) return { chunks: line("Python 3.12.7 (container)\nType python -c 'print(1+1)'", "m") };
-      const code = expr.startsWith("-c") ? args.slice(1).join(" ").replace(/^['"]|['"]$/g, "") : expr;
-      if (code === "print(1+1)" || code === "1+1") return { chunks: line("2") };
-      return { chunks: line(`>>> ${code}\n(hello from the python container)`) };
-    }
     case "reboot":
       return { chunks: line("Rebooting session…", "w"), action: { type: "reboot" } };
     case "exit":

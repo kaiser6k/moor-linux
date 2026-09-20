@@ -136,7 +136,7 @@ export function createDefaultFs(): FsDir {
           },
           motd: {
             kind: "file",
-            content: "Moor Linux 1.2 — logged in as a regular user. sudo when you need root.\nType `help` or `neofetch`.\n",
+            content: "Moor Linux 1.3 — DeX desktop + Debian userspace. Type `linux` or `help`.\n",
           },
         },
       },

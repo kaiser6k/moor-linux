@@ -97,7 +97,7 @@ export function SettingsApp() {
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">Distro</dt>
-            <dd>Moor Linux 1.2</dd>
+            <dd>Moor Linux 1.3</dd>
           </div>
         </dl>
         <button

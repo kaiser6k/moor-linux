@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Debian — Moor</title>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #0b0d12;
+        color: #d8dee9;
+        font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        display: flex;
+        flex-direction: column;
+      }
+      #bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border-bottom: 1px solid #232836;
+        font: 12px/1.4 ui-sans-serif, system-ui, sans-serif;
+        color: #8b93a7;
+      }
+      #bar a {
+        color: #5ee0c4;
+        text-decoration: none;
+      }
+      #console {
+        flex: 1;
+        height: auto;
+        margin: 0;
+        padding: 12px;
+        white-space: pre-wrap;
+        overflow: auto;
+      }
+      #console:focus {
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bar">
+      <span>Moor · Debian</span>
+      <a href="/">Back to desktop</a>
+    </div>
+    <pre id="console" tabindex="0">Booting Debian userspace…</pre>
+    <script type="module">
+      const out = document.getElementById("console");
+      function say(msg) {
+        out.textContent = (out.textContent ? out.textContent + "\n" : "") + msg;
+        out.scrollTop = out.scrollHeight;
+      }
+
+      if (typeof SharedArrayBuffer === "undefined" || !globalThis.crossOriginIsolated) {
+        say("This window needs a cross-origin isolated context (COOP/COEP).");
+        say("Reload the Debian app. If it still fails, publish Moor and open it from the Home Screen.");
+      }
+
+      try {
+        const CheerpX = await import("https://cxrtnc.leaningtech.com/1.2.8/cx.esm.js");
+        let cloud;
+        const wss = "wss://disks.webvm.io/debian_buster_large_permis_fixed_01-06-2026.ext2";
+        try {
+          cloud = await CheerpX.CloudDevice.create(wss);
+        } catch {
+          cloud = await CheerpX.CloudDevice.create("https://disks.webvm.io/debian_buster_large_permis_fixed_01-06-2026.ext2");
+        }
+        const idb = await CheerpX.IDBDevice.create("moor-debian");
+        const overlay = await CheerpX.OverlayDevice.create(cloud, idb);
+        const cx = await CheerpX.Linux.create({
+          mounts: [
+            { type: "ext2", path: "/", dev: overlay },
+            { type: "devs", path: "/dev" },
+            { type: "devpts", path: "/dev/pts" },
+            { type: "proc", path: "/proc" },
+            { type: "sys", path: "/sys" },
+          ],
+        });
+        out.textContent = "";
+        cx.setConsole(out);
+        out.focus();
+        await cx.run("/bin/bash", ["--login"], {
+          env: [
+            "HOME=/home/user",
+            "USER=user",
+            "TERM=xterm",
+            "SHELL=/bin/bash",
+            "EDITOR=vim",
+            "LANG=en_US.UTF-8",
+            "LC_ALL=C",
+          ],
+          cwd: "/home/user",
+          uid: 1000,
+          gid: 1000,
+        });
+      } catch (err) {
+        say("Debian failed to boot: " + (err && err.message ? err.message : String(err)));
+        say("The desktop still works. This window is a real x86 Debian userspace via CheerpX.");
+      }
+    </script>
+  </body>
+</html>

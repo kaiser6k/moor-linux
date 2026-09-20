@@ -1,6 +1,6 @@
 # Moor Linux
 
-A Linux desktop session for a docked iPhone. Plug USB-C into a display, start a session, and you get a floating-window userspace: terminal, files, and the apps a standard distro ships.
+A Linux desktop session for a docked iPhone — DeX-style windows on the display, plus a real Debian userspace (apt, gcc, python, bash) in the Debian app. Plug USB-C into a monitor, start a session.
 
 **Free and open source (MIT).**  
 Repository: [github.com/kaiser6k/moor-linux](https://github.com/kaiser6k/moor-linux)  

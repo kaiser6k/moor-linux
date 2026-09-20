@@ -7,17 +7,17 @@ export function WelcomeApp() {
   const openApp = useMoor((s) => s.openApp);
   return (
     <div className="flex h-full flex-col bg-bg p-6">
-      <p className="text-xs font-medium tracking-widest text-primary uppercase">Moor Linux 1.2</p>
+      <p className="text-xs font-medium tracking-widest text-primary uppercase">Moor Linux 1.3</p>
       <h1 className="mt-2 text-2xl font-semibold">You're docked.</h1>
       <p className="mt-3 text-sm leading-relaxed text-muted">
-        Signed in as a regular user — not root. Click your name in the top bar to switch accounts. Save files onto the
-        phone from Files, and open Software for the full distro.
+        DeX-style desktop on the display. Debian in the dock for real apt, gcc, python, and bash. Save files onto the
+        phone from Files. Signed in as a regular user — not root.
       </p>
       <ul className="mt-6 space-y-2">
         {[
-          { id: "software" as const, icon: Grid2x2, label: "Software", hint: "All applications" },
+          { id: "linux" as const, icon: SquareTerminal, label: "Debian", hint: "apt, gcc, python" },
+          { id: "software" as const, icon: Grid2x2, label: "Software", hint: "Desktop applications" },
           { id: "files" as const, icon: Folder, label: "Files", hint: "Import · save to phone" },
-          { id: "terminal" as const, icon: SquareTerminal, label: "Terminal", hint: "neofetch, ls, help" },
         ].map((item) => {
           const Icon = item.icon;
           return (

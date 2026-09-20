@@ -93,6 +93,7 @@ function wrapHtmlResponses(middlewares, cwd) {
       method === "GET" &&
       String(req.headers.accept ?? "").includes("text/html") &&
       !isInstallQuery(rawUrl) &&
+      pathOnly !== "/linux-vm.html" &&
       isDocumentPath(pathOnly);
     if (!looksLikeDocument) {
       next();

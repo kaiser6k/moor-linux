@@ -8,6 +8,7 @@ import {
   CloudSun,
   Contact,
   Container,
+  Cpu,
   Folder,
   Gauge,
   Globe,
@@ -33,6 +34,7 @@ import type { AppId } from "./apps";
 export const APP_ICONS: Record<AppId, LucideIcon> = {
   welcome: HandHelping,
   terminal: SquareTerminal,
+  linux: Cpu,
   files: Folder,
   editor: AppWindow,
   browser: Globe,

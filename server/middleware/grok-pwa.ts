@@ -99,6 +99,12 @@ export default async function grokPwaMiddleware(
   if (!isDocumentPath(path)) return next();
 
   const result = await next();
+  if (path === "/linux-vm.html" && result instanceof Response) {
+    const headers = new Headers(result.headers);
+    headers.set("Cross-Origin-Opener-Policy", "same-origin");
+    headers.set("Cross-Origin-Embedder-Policy", "require-corp");
+    return new Response(result.body, { status: result.status, statusText: result.statusText, headers });
+  }
   if (
     result instanceof Response &&
     result.body &&

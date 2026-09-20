@@ -1,6 +1,7 @@
 export const APP_IDS = [
   "welcome",
   "terminal",
+  "linux",
   "files",
   "editor",
   "browser",
@@ -71,9 +72,18 @@ export const APP_META: Record<AppId, AppMeta> = {
     singleton: false,
     dock: true,
     category: "system",
-    blurb: "Shell, neofetch, files",
+    blurb: "Moor shell, neofetch, files",
     x: 490,
     y: 88,
+  },
+  linux: {
+    title: "Debian",
+    w: 720,
+    h: 480,
+    singleton: true,
+    dock: true,
+    category: "system",
+    blurb: "Real apt, gcc, python, bash",
   },
   files: {
     title: "Files",
