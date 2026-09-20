@@ -1,0 +1,118 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --color-crust: #0b0d12;
+  --color-bg: #12151c;
+  --color-surface: #1a1e28;
+  --color-overlay: #242a38;
+  --color-fg: #e8edf7;
+  --color-muted: #8b93a7;
+  --color-primary: #5ee0c4;
+  --color-border: #2e3546;
+  --color-danger: #f07178;
+  --color-ok: #9ece6a;
+  --color-warn: #e6b450;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", monospace;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+}
+
+@layer base {
+  html,
+  body,
+  #app {
+    min-height: 100%;
+  }
+
+  html,
+  body {
+    background: var(--color-crust);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@keyframes moor-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes moor-boot {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes moor-breathe {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes moor-bar {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .moor-in {
+    animation: moor-in 0.28s ease-out both;
+  }
+  .moor-boot {
+    animation: moor-boot 0.5s ease-out both;
+  }
+  .moor-breathe {
+    animation: moor-breathe 2.4s ease-in-out infinite;
+  }
+  .moor-bar {
+    transform-origin: 0;
+    animation: moor-bar 1.35s ease-out both;
+  }
+}
+
+.wallpaper-abyss {
+  background-color: var(--color-crust);
+  background-image: radial-gradient(
+    ellipse at bottom,
+    color-mix(in oklab, var(--color-primary) 35%, transparent) 0%,
+    transparent 55%
+  );
+}
+
+.rdp-root {
+  --rdp-accent-color: var(--color-primary);
+  --rdp-accent-background-color: var(--color-overlay);
+  color: var(--color-fg);
+}

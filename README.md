@@ -1,0 +1,40 @@
+# Moor Linux
+
+A Linux desktop session for a docked iPhone. Plug USB-C into a display, start a session, and you get a floating-window userspace: terminal, files, and the apps a standard distro ships.
+
+**Free and open source (MIT).**  
+Repository: [github.com/kaiser6k/moor-linux](https://github.com/kaiser6k/moor-linux)
+
+## What it is
+
+Moor is *userspace* Linux for the display your iPhone is plugged into — not a kernel replacing iOS. Apple does not allow a third-party app to take over the device when HDMI is connected. Moor fills that display with a real workstation: windows, a shell, a home folder, and Save to phone so files can live in iOS Files / Photos.
+
+## Save files onto the phone
+
+1. Open **Files**
+2. Tap a file to select it
+3. Tap **Save to phone**
+4. Use the iOS share sheet: Save to Files, Photos, or AirDrop
+
+**Photos**, **Writer**, **Paint**, **Sheets**, and **Settings → Export home to phone** do the same.
+
+Import from the camera roll or Files app with **Import from phone**. Session data is stored on the device (IndexedDB) until you export it.
+
+## Applications
+
+Accessories, Office, Graphics, Sound & Video, Internet, and System — including Terminal, Files, Software, Text Editor, Writer, Sheets, Notes, Calendar, Contacts, Calculator, Clocks, Weather, Maps, Web, Photos, Paint, Music, Videos, Screenshot, System Monitor, Disks, Settings, and Help.
+
+Open **Software** from the dock, or Super / the grid icon for the launcher.
+
+## Run it
+
+```bash
+npm install
+npm run dev
+```
+
+Then open the app, add it to the iPhone Home Screen, and dock the phone.
+
+## License
+
+MIT — see [LICENSE](LICENSE). Use it, fork it, ship it.

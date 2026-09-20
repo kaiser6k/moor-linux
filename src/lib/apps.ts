@@ -1,0 +1,283 @@
+export const APP_IDS = [
+  "welcome",
+  "terminal",
+  "files",
+  "editor",
+  "browser",
+  "monitor",
+  "calc",
+  "settings",
+  "software",
+  "notes",
+  "writer",
+  "sheets",
+  "calendar",
+  "clock",
+  "weather",
+  "maps",
+  "photos",
+  "paint",
+  "music",
+  "videos",
+  "help",
+  "disk",
+  "contacts",
+  "screenshot",
+] as const;
+
+export type AppId = (typeof APP_IDS)[number];
+
+export type AppCategory = "accessories" | "office" | "graphics" | "media" | "internet" | "system";
+
+export const CATEGORIES: { id: AppCategory; label: string }[] = [
+  { id: "accessories", label: "Accessories" },
+  { id: "office", label: "Office" },
+  { id: "graphics", label: "Graphics" },
+  { id: "media", label: "Sound & Video" },
+  { id: "internet", label: "Internet" },
+  { id: "system", label: "System" },
+];
+
+export type AppMeta = {
+  title: string;
+  w: number;
+  h: number;
+  singleton: boolean;
+  dock: boolean;
+  category: AppCategory;
+  blurb: string;
+  x?: number;
+  y?: number;
+};
+
+export const APP_META: Record<AppId, AppMeta> = {
+  welcome: {
+    title: "Welcome",
+    w: 420,
+    h: 520,
+    singleton: true,
+    dock: false,
+    category: "system",
+    blurb: "Tour the docked session",
+    x: 40,
+    y: 56,
+  },
+  terminal: {
+    title: "Terminal",
+    w: 640,
+    h: 400,
+    singleton: false,
+    dock: true,
+    category: "system",
+    blurb: "Shell, neofetch, files",
+    x: 490,
+    y: 88,
+  },
+  files: {
+    title: "Files",
+    w: 760,
+    h: 500,
+    singleton: true,
+    dock: true,
+    category: "system",
+    blurb: "Home folder — import and save to the phone",
+  },
+  editor: {
+    title: "Text Editor",
+    w: 640,
+    h: 480,
+    singleton: false,
+    dock: false,
+    category: "accessories",
+    blurb: "Plain-text and markdown",
+  },
+  browser: {
+    title: "Web",
+    w: 760,
+    h: 520,
+    singleton: true,
+    dock: true,
+    category: "internet",
+    blurb: "Session start page and links",
+  },
+  monitor: {
+    title: "System Monitor",
+    w: 640,
+    h: 420,
+    singleton: true,
+    dock: false,
+    category: "system",
+    blurb: "CPU, memory, session load",
+  },
+  calc: {
+    title: "Calculator",
+    w: 280,
+    h: 400,
+    singleton: true,
+    dock: false,
+    category: "accessories",
+    blurb: "Everyday arithmetic",
+  },
+  settings: {
+    title: "Settings",
+    w: 480,
+    h: 560,
+    singleton: true,
+    dock: true,
+    category: "system",
+    blurb: "Wallpaper, backup, reset",
+  },
+  software: {
+    title: "Software",
+    w: 720,
+    h: 520,
+    singleton: true,
+    dock: true,
+    category: "system",
+    blurb: "All applications on this distro",
+  },
+  notes: {
+    title: "Notes",
+    w: 640,
+    h: 480,
+    singleton: true,
+    dock: false,
+    category: "accessories",
+    blurb: "Quick notes in ~/Notes",
+  },
+  writer: {
+    title: "Writer",
+    w: 720,
+    h: 520,
+    singleton: true,
+    dock: false,
+    category: "office",
+    blurb: "Long-form documents",
+  },
+  sheets: {
+    title: "Sheets",
+    w: 780,
+    h: 500,
+    singleton: true,
+    dock: false,
+    category: "office",
+    blurb: "Simple spreadsheet, CSV export",
+  },
+  calendar: {
+    title: "Calendar",
+    w: 680,
+    h: 520,
+    singleton: true,
+    dock: false,
+    category: "office",
+    blurb: "Month view and events",
+  },
+  clock: {
+    title: "Clocks",
+    w: 520,
+    h: 480,
+    singleton: true,
+    dock: false,
+    category: "accessories",
+    blurb: "World clocks, timer, stopwatch",
+  },
+  weather: {
+    title: "Weather",
+    w: 520,
+    h: 500,
+    singleton: true,
+    dock: false,
+    category: "internet",
+    blurb: "Local forecast",
+  },
+  maps: {
+    title: "Maps",
+    w: 760,
+    h: 520,
+    singleton: true,
+    dock: false,
+    category: "internet",
+    blurb: "OpenStreetMap",
+  },
+  photos: {
+    title: "Photos",
+    w: 720,
+    h: 500,
+    singleton: true,
+    dock: false,
+    category: "graphics",
+    blurb: "Pictures from the session and the phone",
+  },
+  paint: {
+    title: "Paint",
+    w: 720,
+    h: 520,
+    singleton: true,
+    dock: false,
+    category: "graphics",
+    blurb: "Sketch and save to Pictures",
+  },
+  music: {
+    title: "Music",
+    w: 520,
+    h: 460,
+    singleton: true,
+    dock: false,
+    category: "media",
+    blurb: "Play audio imported from the phone",
+  },
+  videos: {
+    title: "Videos",
+    w: 720,
+    h: 500,
+    singleton: true,
+    dock: false,
+    category: "media",
+    blurb: "Play video imported from the phone",
+  },
+  help: {
+    title: "Help",
+    w: 560,
+    h: 520,
+    singleton: true,
+    dock: false,
+    category: "system",
+    blurb: "Manual and shortcuts",
+  },
+  disk: {
+    title: "Disks",
+    w: 520,
+    h: 460,
+    singleton: true,
+    dock: false,
+    category: "system",
+    blurb: "Home folder usage",
+  },
+  contacts: {
+    title: "Contacts",
+    w: 560,
+    h: 500,
+    singleton: true,
+    dock: false,
+    category: "office",
+    blurb: "Names, phones, emails",
+  },
+  screenshot: {
+    title: "Screenshot",
+    w: 520,
+    h: 420,
+    singleton: true,
+    dock: false,
+    category: "accessories",
+    blurb: "Capture the session to Pictures",
+  },
+};
+
+export const WALLPAPERS = [
+  { id: "fjord", name: "Fjord Night", src: "/wallpapers/fjord.jpg" },
+  { id: "abyss", name: "Abyss", src: null },
+] as const;
+
+export type WallpaperId = (typeof WALLPAPERS)[number]["id"];
+
+export const GITHUB_URL = "https://github.com/kaiser6k/moor-linux";
