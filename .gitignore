@@ -14,5 +14,8 @@ attachments
 .grok
 .env
 .env.*
-discord/.env
+ios
+android
+.capacitor
+
 

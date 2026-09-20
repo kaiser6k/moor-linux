@@ -30,6 +30,7 @@ docker compose up --build
 | --- | --- |
 | Node / Vercel / Docker | [docs/self-host.md](docs/self-host.md) |
 | iPhone Home Screen + dock | [docs/ios.md](docs/ios.md) |
+| Native iOS app (Mac / TestFlight) | [docs/ios-app.md](docs/ios-app.md) |
 | Discord bot | [docs/discord.md](docs/discord.md) |
 | Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
 

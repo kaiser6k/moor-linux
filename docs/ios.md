@@ -9,7 +9,8 @@ Moor is a web app you add to the Home Screen. It is not in the App Store. Apple 
 3. Tap **Add to Home Screen**.
 4. Open Moor from the new icon (standalone display).
 
-Use HTTPS if you can. Share sheet and Save to phone are more reliable there.
+When you have a Mac Mini and an Apple Developer account, a real Xcode app (TestFlight) is [docs/ios-app.md](ios-app.md). Until then this Home Screen icon is the iOS app.
+
 
 ## Dock a display
 
