@@ -14,15 +14,15 @@ const SECTIONS = [
     body: "Files, Photos, Music, and Videos can import from the camera roll and Files app. Imports live in this session (IndexedDB) until you save them out.",
   },
   {
-    title: "Keyboard",
-    body: "Super / Cmd+Space — launcher. Ctrl+Alt+T — terminal. Esc — close launcher.",
+    title: "Containers",
+    body: "Software → Containers. Run alpine/debian/python with isolated mount, hostname, and PIDs. Exec opens a namespaced shell. The Wasm tab can boot a real converted Debian image (heavy). iOS cannot create Linux namespaces — this is userspace, not runc.",
   },
 ];
 
 export function HelpApp() {
   return (
     <div className="h-full overflow-auto bg-bg p-5">
-      <p className="text-xs font-medium tracking-widest text-primary uppercase">Moor Linux 1.1</p>
+      <p className="text-xs font-medium tracking-widest text-primary uppercase">Moor Linux 1.2</p>
       <h1 className="mt-2 text-2xl font-semibold">Help</h1>
       <ul className="mt-6 space-y-4">
         {SECTIONS.map((s) => (

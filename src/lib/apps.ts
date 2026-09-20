@@ -23,6 +23,7 @@ export const APP_IDS = [
   "disk",
   "contacts",
   "screenshot",
+  "containers",
 ] as const;
 
 export type AppId = (typeof APP_IDS)[number];
@@ -270,6 +271,15 @@ export const APP_META: Record<AppId, AppMeta> = {
     dock: false,
     category: "accessories",
     blurb: "Capture the session to Pictures",
+  },
+  containers: {
+    title: "Containers",
+    w: 760,
+    h: 540,
+    singleton: true,
+    dock: false,
+    category: "system",
+    blurb: "Namespaces, images, exec — userspace runtime",
   },
 };
 

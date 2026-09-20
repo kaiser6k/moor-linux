@@ -26,6 +26,18 @@ Accessories, Office, Graphics, Sound & Video, Internet, and System — including
 
 Open **Software** from the dock, or Super / the grid icon for the launcher.
 
+## Containers
+
+A container is a process with extra kernel isolation (namespaces + cgroups) — not a VM. iOS will not let an app call `clone(CLONE_NEWNS|…)`, so Moor ships a **userspace runtime**:
+
+- Images: alpine, debian, python, busybox
+- Each Run gets its own rootfs, hostname, and PID table
+- Exec opens a namespaced shell (`root@alpine:~#`)
+- Namespaces tab explains mnt/pid/uts/net/user/cgroup
+- Wasm tab can boot a real converted Debian image via [container2wasm](https://github.com/container2wasm/container2wasm) (~200 MB, heavy on iPhone)
+
+This is a teaching runtime, not runc. The kernel is still the host session.
+
 ## Run it
 
 ```bash

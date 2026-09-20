@@ -9,6 +9,7 @@ import { CalcApp } from "@/components/apps/calc-app";
 import { CalendarApp } from "@/components/apps/calendar-app";
 import { ClockApp } from "@/components/apps/clock-app";
 import { ContactsApp } from "@/components/apps/contacts-app";
+import { ContainersApp } from "@/components/apps/containers-app";
 import { DiskApp } from "@/components/apps/disk-app";
 import { EditorApp } from "@/components/apps/editor-app";
 import { FilesApp } from "@/components/apps/files-app";
@@ -33,7 +34,7 @@ import { useMoor, type Win } from "@/lib/store";
 
 const BODIES: Record<AppId, (win: Win) => ReactNode> = {
   welcome: () => <WelcomeApp />,
-  terminal: (win) => <TerminalApp windowId={win.id} />,
+  terminal: (win) => <TerminalApp windowId={win.id} path={win.path} />,
   files: () => <FilesApp />,
   editor: (win) => <EditorApp path={win.path} />,
   browser: () => <BrowserApp />,
@@ -56,6 +57,7 @@ const BODIES: Record<AppId, (win: Win) => ReactNode> = {
   disk: () => <DiskApp />,
   contacts: () => <ContactsApp />,
   screenshot: () => <ScreenshotApp />,
+  containers: () => <ContainersApp />,
 };
 
 function AppBody({ win }: { win: Win }) {

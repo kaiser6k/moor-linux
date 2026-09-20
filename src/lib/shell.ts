@@ -30,6 +30,10 @@ export type ShellCtx = {
   cwd: string;
   fs: FsDir;
   history: string[];
+  hostname?: string;
+  user?: string;
+  image?: string;
+  pids?: { pid: number; cmd: string }[];
 };
 
 const COMMANDS = [
@@ -68,6 +72,11 @@ const COMMANDS = [
   "reboot",
   "exit",
   "moor",
+  "docker",
+  "podman",
+  "unshare",
+  "python",
+  "python3",
 ] as const;
 
 function line(text: string, c?: Chunk["c"]): Chunk[] {
@@ -164,7 +173,7 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
           line("Moor shell — commands", "p"),
           line("help  clear  ls  cd  pwd  cat  echo  mkdir  touch  rm  tree"),
           line("whoami  hostname  uname  date  neofetch  fortune  cowsay"),
-          line("open  code  vim  htop  apt  history  reboot  exit"),
+          line("open  code  vim  htop  docker  python  history  reboot  exit"),
         ),
       };
     case "clear":
@@ -172,17 +181,19 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
     case "pwd":
       return { chunks: line(ctx.cwd) };
     case "whoami":
-      return { chunks: line("moor") };
+      return { chunks: line(ctx.user ?? "moor") };
     case "hostname":
-      return { chunks: line("iphone") };
+      return { chunks: line(ctx.hostname ?? "iphone") };
     case "date":
       return { chunks: line(new Date().toString()) };
     case "uname":
       return {
         chunks: line(
           args[0] === "-a"
-            ? "Moor Linux 1.0 iphone 6.8.0-moor-wasm wasm32 WASM Moor/iPhone"
-            : "Moor",
+            ? ctx.image
+              ? `Linux ${ctx.hostname ?? "container"} 6.8.0-moor #1 WASM ${ctx.image} GNU/Linux`
+              : "Moor Linux 1.1 iphone 6.8.0-moor-wasm wasm32 WASM Moor/iPhone"
+            : "Linux",
         ),
       };
     case "echo":
@@ -285,6 +296,8 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
         disks: "disk",
         contacts: "contacts",
         screenshot: "screenshot",
+        containers: "containers",
+        docker: "containers",
         ".": "files",
       };
       const key = (args[0] ?? "files").toLowerCase();
@@ -304,7 +317,15 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
     case "htop":
     case "top":
       return { chunks: line("opening monitor…", "m"), action: { type: "open", appId: "monitor" } };
-    case "ps":
+    case "ps": {
+      if (ctx.pids?.length) {
+        return {
+          chunks: joinChunks(
+            line("PID  TTY      CMD"),
+            ...ctx.pids.map((p) => line(`${String(p.pid).padStart(3)}  pts/0    ${p.cmd}`)),
+          ),
+        };
+      }
       return {
         chunks: joinChunks(
           line("PID  TTY      CMD"),
@@ -313,6 +334,7 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
           line(" 14  pts/0    msh"),
         ),
       };
+    }
     case "free":
       return { chunks: line("              total        used        free\nMem:        2097152      421888     1675264") };
     case "df":
@@ -335,6 +357,36 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
           line("A userspace desktop for USB-C / HDMI sessions."),
         ),
       };
+    case "docker":
+    case "podman": {
+      const sub = args[0];
+      if (!sub || sub === "ps" || sub === "images" || sub === "run") {
+        return {
+          chunks: joinChunks(
+            line("Moor has a userspace container runtime — not runc.", "p"),
+            line("open Containers, or: open docker"),
+          ),
+          action: { type: "open", appId: "containers" },
+        };
+      }
+      return { chunks: line(`${cmd}: unknown subcommand. Open Containers.`, "m") };
+    }
+    case "unshare":
+      return {
+        chunks: joinChunks(
+          line("unshare: clone() with CLONE_NEWNS|CLONE_NEWPID|CLONE_NEWUTS is a Linux syscall.", "w"),
+          line("iOS will not give that to an app. Moor emulates those namespaces in Containers."),
+        ),
+      };
+    case "python":
+    case "python3": {
+      if (ctx.image !== "python") return { chunks: line("python: not installed in this namespace. Run the python image.", "d") };
+      const expr = args.join(" ").trim();
+      if (!expr) return { chunks: line("Python 3.12.7 (container)\nType python -c 'print(1+1)'", "m") };
+      const code = expr.startsWith("-c") ? args.slice(1).join(" ").replace(/^['"]|['"]$/g, "") : expr;
+      if (code === "print(1+1)" || code === "1+1") return { chunks: line("2") };
+      return { chunks: line(`>>> ${code}\n(hello from the python container)`) };
+    }
     case "reboot":
       return { chunks: line("Rebooting session…", "w"), action: { type: "reboot" } };
     case "exit":

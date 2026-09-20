@@ -11,6 +11,7 @@ import {
   writeFile as writeFileAt,
   type FsDir,
 } from "./fs";
+import { makeContainer, type Ctr, type ImageId } from "./containers";
 import { idbStorage } from "./idb";
 
 export type PhoneTab = "home" | "display" | "session" | "about";
@@ -42,6 +43,7 @@ type MoorState = {
   zTop: number;
   launcherOpen: boolean;
   cascade: number;
+  containers: Ctr[];
   startSession: (opts?: { skipBoot?: boolean }) => void;
   endSession: () => void;
   finishBoot: () => void;
@@ -61,6 +63,11 @@ type MoorState = {
   mkdir: (path: string) => void;
   remove: (path: string) => void;
   resetFs: () => void;
+  runContainer: (image: ImageId, name?: string) => Ctr;
+  stopContainer: (id: string) => void;
+  removeContainer: (id: string) => void;
+  setContainerCwd: (id: string, cwd: string) => void;
+  touchContainer: (id: string) => void;
 };
 
 let bootTimer: ReturnType<typeof setTimeout> | null = null;
@@ -115,6 +122,7 @@ export const useMoor = create<MoorState>()(
       zTop: 12,
       launcherOpen: false,
       cascade: 2,
+      containers: [],
       startSession: (opts) => {
         const { hasBooted } = get();
         if (bootTimer) clearTimeout(bootTimer);
@@ -190,8 +198,12 @@ export const useMoor = create<MoorState>()(
         }
         const n = state.cascade;
         const id = nextId();
-        const title =
-          appId === "editor" && path ? path.split("/").filter(Boolean).pop() ?? meta.title : meta.title;
+        let title = meta.title;
+        if (appId === "editor" && path) title = path.split("/").filter(Boolean).pop() ?? meta.title;
+        if (appId === "terminal" && path?.startsWith("ctr:")) {
+          const ctr = state.containers.find((c) => c.id === path.slice(4));
+          title = ctr ? `sh · ${ctr.name}` : "sh · container";
+        }
         const win: Win = {
           id,
           appId,
@@ -265,12 +277,34 @@ export const useMoor = create<MoorState>()(
           return { fs };
         }),
       resetFs: () => set({ fs: createDefaultFs(), cwd: HOME }),
+      runContainer: (image, name) => {
+        const ctr = makeContainer(image, name);
+        set((s) => ({ containers: [ctr, ...s.containers] }));
+        return ctr;
+      },
+      stopContainer: (id) =>
+        set((s) => ({
+          containers: s.containers.map((c) => (c.id === id ? { ...c, status: "exited" as const } : c)),
+        })),
+      removeContainer: (id) =>
+        set((s) => ({
+          containers: s.containers.filter((c) => c.id !== id),
+          windows: s.windows.filter((w) => w.path !== `ctr:${id}`),
+        })),
+      setContainerCwd: (id, cwd) =>
+        set((s) => ({
+          containers: s.containers.map((c) => (c.id === id ? { ...c, cwd } : c)),
+        })),
+      touchContainer: (id) =>
+        set((s) => ({
+          containers: s.containers.map((c) => (c.id === id ? { ...c } : c)),
+        })),
     }),
     {
       name: "moor-v1",
       skipHydration: true,
       storage: createJSONStorage(() => idbStorage),
-      partialize: (s) => ({ fs: s.fs, wallpaperId: s.wallpaperId }),
+      partialize: (s) => ({ fs: s.fs, wallpaperId: s.wallpaperId, containers: s.containers }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         state.fs = migrateFs(state.fs);

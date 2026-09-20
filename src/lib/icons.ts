@@ -7,6 +7,7 @@ import {
   Clock3,
   CloudSun,
   Contact,
+  Container,
   Folder,
   Gauge,
   Globe,
@@ -53,6 +54,7 @@ export const APP_ICONS: Record<AppId, LucideIcon> = {
   disk: HardDrive,
   contacts: Contact,
   screenshot: Camera,
+  containers: Container,
 };
 
 export const LAUNCHER_ICON = LayoutGrid;

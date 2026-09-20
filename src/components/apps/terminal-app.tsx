@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
+import { parseCtrPath } from "@/lib/containers";
 import { complete, runCommand, type Chunk } from "@/lib/shell";
 import { HOME } from "@/lib/fs";
 import { useMoor } from "@/lib/store";
 
 type Line = { kind: "in" | "out"; cwd?: string; chunks?: Chunk[]; text?: string };
 
-function shortCwd(cwd: string) {
-  if (cwd === HOME) return "~";
-  if (cwd.startsWith(HOME + "/")) return "~" + cwd.slice(HOME.length);
+function shortCwd(cwd: string, home: string) {
+  if (cwd === home) return "~";
+  if (cwd.startsWith(home + "/")) return "~" + cwd.slice(home.length);
+  if (cwd === "/") return "/";
   return cwd;
 }
 
@@ -38,16 +40,52 @@ function Chunks({ chunks }: { chunks: Chunk[] }) {
   );
 }
 
-export function TerminalApp({ windowId }: { windowId: string }) {
-  const fs = useMoor((s) => s.fs);
-  const cwd = useMoor((s) => s.cwd);
+export function TerminalApp({ windowId, path }: { windowId: string; path?: string }) {
+  const containerId = parseCtrPath(path);
+  const hostFs = useMoor((s) => s.fs);
+  const hostCwd = useMoor((s) => s.cwd);
   const setCwd = useMoor((s) => s.setCwd);
+  const containers = useMoor((s) => s.containers);
+  const ctr = containers.find((c) => c.id === containerId);
+  const fs = ctr?.fs ?? hostFs;
+  const cwd = ctr?.cwd ?? hostCwd;
+  const user = ctr ? "root" : "moor";
+  const host = ctr?.hostname ?? "iphone";
+  const promptHome = ctr ? "/root" : HOME;
+  const setContainerCwd = useMoor((s) => s.setContainerCwd);
+  const touchContainer = useMoor((s) => s.touchContainer);
   const openApp = useMoor((s) => s.openApp);
   const reboot = useMoor((s) => s.reboot);
   const closeWindow = useMoor((s) => s.closeWindow);
-  const [lines, setLines] = useState<Line[]>([
-    { kind: "out", chunks: [{ t: "Moor Linux 1.0 — docked iPhone session. Type ", c: "m" }, { t: "help", c: "p" }, { t: " or ", c: "m" }, { t: "neofetch", c: "p" }, { t: ".\n", c: "m" }] },
-  ]);
+  const [lines, setLines] = useState<Line[]>(() =>
+    containerId
+      ? [
+          {
+            kind: "out",
+            chunks: [
+              { t: `attached to ${containerId} — namespaced sh. Type `, c: "m" },
+              { t: "uname -a", c: "p" },
+              { t: ", ", c: "m" },
+              { t: "ls /", c: "p" },
+              { t: ", ", c: "m" },
+              { t: "exit", c: "p" },
+              { t: ".\n", c: "m" },
+            ],
+          },
+        ]
+      : [
+          {
+            kind: "out",
+            chunks: [
+              { t: "Moor Linux 1.1 — docked iPhone session. Type ", c: "m" },
+              { t: "help", c: "p" },
+              { t: " or ", c: "m" },
+              { t: "neofetch", c: "p" },
+              { t: ".\n", c: "m" },
+            ],
+          },
+        ],
+  );
   const [value, setValue] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [histIdx, setHistIdx] = useState(-1);
@@ -59,17 +97,26 @@ export function TerminalApp({ windowId }: { windowId: string }) {
   }, [lines]);
 
   function run(raw: string) {
-    const result = runCommand(raw, { cwd, fs, history });
+    const result = runCommand(raw, {
+      cwd,
+      fs,
+      history,
+      hostname: host,
+      user,
+      image: ctr?.image,
+      pids: ctr?.pids,
+    });
     if (result.clear) {
       setLines([]);
     } else if (raw.trim()) {
-      setLines((prev) => [
-        ...prev,
-        { kind: "in", cwd, text: raw },
-        { kind: "out", chunks: result.chunks },
-      ]);
+      setLines((prev) => [...prev, { kind: "in", cwd, text: raw }, { kind: "out", chunks: result.chunks }]);
     }
-    if (result.cwd) setCwd(result.cwd);
+    if (result.cwd) {
+      if (containerId) setContainerCwd(containerId, result.cwd);
+      else setCwd(result.cwd);
+    } else if (containerId) {
+      touchContainer(containerId);
+    }
     if (raw.trim()) {
       setHistory((h) => [...h, raw]);
       setHistIdx(-1);
@@ -78,6 +125,14 @@ export function TerminalApp({ windowId }: { windowId: string }) {
     if (result.action?.type === "reboot") reboot();
     if (result.action?.type === "exit") closeWindow(windowId);
     setValue("");
+  }
+
+  const prompt = `${user}@${host}`;
+  const displayCwd = shortCwd(cwd, promptHome);
+  const sigil = ctr ? "#" : "$";
+
+  if (containerId && !ctr) {
+    return <p className="p-4 text-sm text-muted">Container gone.</p>;
   }
 
   return (
@@ -89,10 +144,10 @@ export function TerminalApp({ windowId }: { windowId: string }) {
         {lines.map((line, i) =>
           line.kind === "in" ? (
             <p key={i}>
-              <span className="text-primary">moor@iphone</span>
+              <span className="text-primary">{prompt}</span>
               <span className="text-muted">:</span>
-              <span className="text-ok">{shortCwd(line.cwd ?? cwd)}</span>
-              <span className="text-muted">$ </span>
+              <span className="text-ok">{shortCwd(line.cwd ?? cwd, promptHome)}</span>
+              <span className="text-muted">{sigil} </span>
               <span>{line.text}</span>
             </p>
           ) : (
@@ -102,10 +157,10 @@ export function TerminalApp({ windowId }: { windowId: string }) {
           ),
         )}
         <p className="flex">
-          <span className="text-primary">moor@iphone</span>
+          <span className="text-primary">{prompt}</span>
           <span className="text-muted">:</span>
-          <span className="text-ok">{shortCwd(cwd)}</span>
-          <span className="text-muted">$ </span>
+          <span className="text-ok">{displayCwd}</span>
+          <span className="text-muted">{sigil} </span>
           <input
             ref={inputRef}
             value={value}
@@ -138,7 +193,7 @@ export function TerminalApp({ windowId }: { windowId: string }) {
                 }
               } else if (e.key === "Tab") {
                 e.preventDefault();
-                const filled = complete(value, { cwd, fs, history });
+                const filled = complete(value, { cwd, fs, history, hostname: host, user, image: ctr?.image, pids: ctr?.pids });
                 if (filled) setValue(filled);
               } else if (e.key === "c" && e.ctrlKey) {
                 e.preventDefault();
