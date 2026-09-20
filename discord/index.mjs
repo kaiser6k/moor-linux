@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -13,10 +13,28 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const HERE = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(HERE, "..");
 const ICON = join(ROOT, "public/brand/icon-discord.png");
 const BMC = "https://www.buymeacoffee.com/y6QUkvf";
 const GITHUB = "https://github.com/kaiser6k/moor-linux";
+
+function loadEnv() {
+  for (const file of [join(HERE, ".env"), join(ROOT, ".env")]) {
+    if (!existsSync(file)) continue;
+    for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t || t.startsWith("#")) continue;
+      const i = t.indexOf("=");
+      if (i < 1) continue;
+      const k = t.slice(0, i).trim();
+      let v = t.slice(i + 1).trim();
+      if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
+      if (!process.env[k]) process.env[k] = v;
+    }
+  }
+}
+loadEnv();
 
 const TOKEN = process.env.DISCORD_TOKEN?.trim();
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID?.trim();
