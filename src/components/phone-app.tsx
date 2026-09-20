@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Anchor, Home, Info, Monitor } from "lucide-react";
+import { BmcButton } from "@/components/bmc-button";
 import { GITHUB_URL } from "@/lib/apps";
 import { displayLabel, requestExternalDisplay } from "@/lib/display";
 import { useMoor } from "@/lib/store";
@@ -197,6 +198,9 @@ function AboutTab() {
         <li className="rounded-lg bg-surface px-3 py-3">Save to phone via the iOS share sheet</li>
         <li className="rounded-lg bg-surface px-3 py-3">Free and open source on GitHub</li>
       </ul>
+      <div className="mt-6">
+        <BmcButton />
+      </div>
       <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="mt-6 inline-block text-sm text-primary">
         github.com/kaiser6k/moor-linux
       </a>

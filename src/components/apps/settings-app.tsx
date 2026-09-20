@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BmcButton } from "@/components/bmc-button";
 import { GITHUB_URL, WALLPAPERS } from "@/lib/apps";
 import { saveToPhone } from "@/lib/device";
 import { HOME, walkFiles } from "@/lib/fs";
@@ -106,6 +107,13 @@ export function SettingsApp() {
         >
           Users & groups
         </button>
+      </section>
+      <section className="mt-6">
+        <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Support</h2>
+        <p className="mt-2 text-sm text-muted">Moor is free. Coffee keeps the lights on.</p>
+        <div className="mt-3">
+          <BmcButton />
+        </div>
       </section>
       <div className="mt-6 flex gap-2">
         <button type="button" onClick={reboot} className="rounded-md bg-overlay px-3 py-2 text-sm">

@@ -5,6 +5,8 @@ A Linux desktop session for a docked iPhone. Plug USB-C into a display, start a 
 **Free and open source (MIT).**  
 Repository: [github.com/kaiser6k/moor-linux](https://github.com/kaiser6k/moor-linux)
 
+[![Buy me a coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/y6QUkvf)
+
 ## Host your own
 
 Anyone can run a private instance. Full walkthrough: **[docs/self-host.md](docs/self-host.md)**.

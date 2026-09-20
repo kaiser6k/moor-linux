@@ -1,4 +1,5 @@
 import { Folder, Grid2x2, SquareTerminal } from "lucide-react";
+import { BmcButton } from "@/components/bmc-button";
 import { GITHUB_URL } from "@/lib/apps";
 import { useMoor } from "@/lib/store";
 
@@ -34,13 +35,16 @@ export function WelcomeApp() {
           );
         })}
       </ul>
-      <p className="mt-auto pt-6 text-xs text-muted">
-        Free source:{" "}
-        <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="text-primary">
-          GitHub
-        </a>
-        . Super opens the launcher.
-      </p>
+      <div className="mt-auto space-y-3 pt-6">
+        <BmcButton />
+        <p className="text-xs text-muted">
+          Free source:{" "}
+          <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="text-primary">
+            GitHub
+          </a>
+          . Super opens the launcher.
+        </p>
+      </div>
     </div>
   );
 }

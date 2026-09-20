@@ -56,7 +56,7 @@ export const APP_META: Record<AppId, AppMeta> = {
   welcome: {
     title: "Welcome",
     w: 420,
-    h: 520,
+    h: 560,
     singleton: true,
     dock: false,
     category: "system",
@@ -302,3 +302,4 @@ export type WallpaperId = (typeof WALLPAPERS)[number]["id"];
 
 export const GITHUB_URL = "https://github.com/kaiser6k/moor-linux";
 export const DOCS_URL = "https://github.com/kaiser6k/moor-linux/blob/main/docs/self-host.md";
+export const BMC_URL = "https://www.buymeacoffee.com/y6QUkvf";

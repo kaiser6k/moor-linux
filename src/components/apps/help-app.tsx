@@ -1,3 +1,4 @@
+import { BmcButton } from "@/components/bmc-button";
 import { DOCS_URL, GITHUB_URL } from "@/lib/apps";
 
 const SECTIONS = [
@@ -32,7 +33,10 @@ export function HelpApp() {
           </li>
         ))}
       </ul>
-      <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="mt-6 inline-block text-sm text-primary">
+      <div className="mt-6">
+        <BmcButton />
+      </div>
+      <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm text-primary">
         Source on GitHub — free for everyone
       </a>
       <a href={DOCS_URL} target="_blank" rel="noreferrer" className="mt-2 block text-sm text-primary">
