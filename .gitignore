@@ -13,3 +13,5 @@ artifacts
 .grok
 .env
 .env.*
+discord/.env
+

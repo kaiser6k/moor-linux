@@ -29,6 +29,7 @@ docker compose up --build
 | --- | --- |
 | Node / Vercel / Docker | [docs/self-host.md](docs/self-host.md) |
 | iPhone Home Screen + dock | [docs/ios.md](docs/ios.md) |
+| Discord bot | [docs/discord.md](docs/discord.md) |
 | Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
 
 You need **Node.js 22+**. Keep `VITE_AUTH_ENABLED=false` (already in `env.example`) so the instance is a local desktop, not a Grok login wall.
