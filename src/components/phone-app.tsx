@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Anchor, Home, Info, Monitor } from "lucide-react";
 import { BmcButton } from "@/components/bmc-button";
-import { GITHUB_URL } from "@/lib/apps";
+import { DISCORD_URL, GITHUB_URL } from "@/lib/apps";
 import { displayLabel, requestExternalDisplay } from "@/lib/display";
 import { useMoor } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -203,6 +203,9 @@ function AboutTab() {
       </div>
       <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="mt-6 inline-block text-sm text-primary">
         github.com/kaiser6k/moor-linux
+      </a>
+      <a href={DISCORD_URL} target="_blank" rel="noreferrer" className="mt-2 block text-sm text-primary">
+        Discord
       </a>
     </div>
   );

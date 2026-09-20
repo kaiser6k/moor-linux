@@ -20,6 +20,7 @@ const ROOT = join(HERE, "..");
 const ICON = join(ROOT, "public/brand/icon-discord.png");
 const BMC = "https://www.buymeacoffee.com/y6QUkvf";
 const GITHUB = "https://github.com/kaiser6k/moor-linux";
+const DISCORD_INVITE = "https://discord.gg/CNRYnGBayu";
 
 function loadEnv() {
   for (const file of [join(HERE, ".env"), join(ROOT, ".env")]) {
@@ -89,6 +90,7 @@ function welcomeEmbed() {
     )
     .addFields(
       { name: "Source", value: GITHUB },
+      { name: "Discord", value: DISCORD_INVITE },
       { name: "Coffee", value: BMC },
     )
     .setFooter({ text: "MIT · free for everyone" });

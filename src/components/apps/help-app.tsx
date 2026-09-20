@@ -1,5 +1,5 @@
 import { BmcButton } from "@/components/bmc-button";
-import { DOCS_URL, GITHUB_URL } from "@/lib/apps";
+import { DISCORD_URL, DOCS_URL, GITHUB_URL } from "@/lib/apps";
 
 const SECTIONS = [
   {
@@ -38,6 +38,9 @@ export function HelpApp() {
       </div>
       <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm text-primary">
         Source on GitHub — free for everyone
+      </a>
+      <a href={DISCORD_URL} target="_blank" rel="noreferrer" className="mt-2 block text-sm text-primary">
+        Discord
       </a>
       <a href={DOCS_URL} target="_blank" rel="noreferrer" className="mt-2 block text-sm text-primary">
         Set up your own instance

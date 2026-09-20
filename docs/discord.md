@@ -1,5 +1,7 @@
 # Moor Discord bot
 
+Public invite: [discord.gg/CNRYnGBayu](https://discord.gg/CNRYnGBayu)
+
 The bot brands a server as Moor (icon, channels, Docked role, welcome post) and exposes a small admin API so Grok can manage it from chat once you host it.
 
 It cannot log into Discord as you. You create the application; the bot does the clicking.

@@ -1,6 +1,6 @@
 import { Folder, Grid2x2, SquareTerminal } from "lucide-react";
 import { BmcButton } from "@/components/bmc-button";
-import { GITHUB_URL } from "@/lib/apps";
+import { DISCORD_URL, GITHUB_URL } from "@/lib/apps";
 import { useMoor } from "@/lib/store";
 
 export function WelcomeApp() {
@@ -41,6 +41,10 @@ export function WelcomeApp() {
           Free source:{" "}
           <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="text-primary">
             GitHub
+          </a>
+          . Discord:{" "}
+          <a href={DISCORD_URL} target="_blank" rel="noreferrer" className="text-primary">
+            discord.gg/CNRYnGBayu
           </a>
           . Super opens the launcher.
         </p>

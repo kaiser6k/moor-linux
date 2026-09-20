@@ -3,7 +3,8 @@
 A Linux desktop session for a docked iPhone. Plug USB-C into a display, start a session, and you get a floating-window userspace: terminal, files, and the apps a standard distro ships.
 
 **Free and open source (MIT).**  
-Repository: [github.com/kaiser6k/moor-linux](https://github.com/kaiser6k/moor-linux)
+Repository: [github.com/kaiser6k/moor-linux](https://github.com/kaiser6k/moor-linux)  
+Discord: [discord.gg/CNRYnGBayu](https://discord.gg/CNRYnGBayu)
 
 [![Buy me a coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/y6QUkvf)
 

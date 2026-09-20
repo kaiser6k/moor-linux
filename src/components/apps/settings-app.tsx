@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { BmcButton } from "@/components/bmc-button";
-import { GITHUB_URL, WALLPAPERS } from "@/lib/apps";
+import { DISCORD_URL, GITHUB_URL, WALLPAPERS } from "@/lib/apps";
 import { saveToPhone } from "@/lib/device";
 import { HOME, walkFiles } from "@/lib/fs";
 import { useMoor } from "@/lib/store";
@@ -125,6 +125,9 @@ export function SettingsApp() {
       </div>
       <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="mt-6 inline-block text-xs text-primary">
         github.com/kaiser6k/moor-linux
+      </a>
+      <a href={DISCORD_URL} target="_blank" rel="noreferrer" className="mt-2 block text-xs text-primary">
+        discord.gg/CNRYnGBayu
       </a>
     </div>
   );
