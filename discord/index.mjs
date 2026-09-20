@@ -3,10 +3,12 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  ApplicationIntegrationType,
   ChannelType,
   Client,
   EmbedBuilder,
   GatewayIntentBits,
+  InteractionContextType,
   PermissionFlagsBits,
   REST,
   Routes,
@@ -42,24 +44,22 @@ const GUILD_ID = process.env.DISCORD_GUILD_ID?.trim();
 const ADMIN_SECRET = process.env.ADMIN_SECRET?.trim();
 const ADMIN_PORT = Number(process.env.ADMIN_PORT || 8787);
 
+function slash(name, description) {
+  return new SlashCommandBuilder()
+    .setName(name)
+    .setDescription(description)
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
+    .setContexts(InteractionContextType.Guild);
+}
+
 const COMMANDS = [
-  new SlashCommandBuilder()
-    .setName("moor-setup")
-    .setDescription("Brand this server as Moor: icon, channels, Docked role, welcome post")
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-    .toJSON(),
-  new SlashCommandBuilder()
-    .setName("moor-announce")
-    .setDescription("Post a message as the Moor bot")
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+  slash("moor-setup", "Brand this server as Moor: icon, channels, Docked role, welcome post").toJSON(),
+  slash("moor-announce", "Post a message as the Moor bot")
     .addStringOption((o) => o.setName("message").setDescription("What to say").setRequired(true))
     .addChannelOption((o) => o.setName("channel").setDescription("Where (default: this channel)"))
     .toJSON(),
-  new SlashCommandBuilder()
-    .setName("moor-status")
-    .setDescription("Show guild, channels, and Docked role")
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-    .toJSON(),
+  slash("moor-status", "Show guild, channels, and Docked role").toJSON(),
 ];
 
 function requireEnv() {
