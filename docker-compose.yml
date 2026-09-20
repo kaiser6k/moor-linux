@@ -1,0 +1,8 @@
+services:
+  moor:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_AUTH_ENABLED: "false"
+    restart: unless-stopped

@@ -5,6 +5,32 @@ A Linux desktop session for a docked iPhone. Plug USB-C into a display, start a 
 **Free and open source (MIT).**  
 Repository: [github.com/kaiser6k/moor-linux](https://github.com/kaiser6k/moor-linux)
 
+## Host your own
+
+Anyone can run a private instance. Full walkthrough: **[docs/self-host.md](docs/self-host.md)**.
+
+```bash
+git clone https://github.com/kaiser6k/moor-linux.git
+cd moor-linux
+cp env.example .env
+npm install
+npm run dev
+```
+
+Then open the URL it prints, or:
+
+```bash
+docker compose up --build
+```
+
+| Path | Doc |
+| --- | --- |
+| Node / Vercel / Docker | [docs/self-host.md](docs/self-host.md) |
+| iPhone Home Screen + dock | [docs/ios.md](docs/ios.md) |
+| Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
+
+You need **Node.js 22+**. Keep `VITE_AUTH_ENABLED=false` (already in `env.example`) so the instance is a local desktop, not a Grok login wall.
+
 ## What it is
 
 Moor is *userspace* Linux for the display your iPhone is plugged into — not a kernel replacing iOS. Apple does not allow a third-party app to take over the device when HDMI is connected. Moor fills that display with a real workstation: windows, a shell, a home folder, and Save to phone so files can live in iOS Files / Photos.
@@ -22,7 +48,7 @@ Import from the camera roll or Files app with **Import from phone**. Session dat
 
 ## Applications
 
-Accessories, Office, Graphics, Sound & Video, Internet, and System — including Terminal, Files, Software, Text Editor, Writer, Sheets, Notes, Calendar, Contacts, Calculator, Clocks, Weather, Maps, Web, Photos, Paint, Music, Videos, Screenshot, System Monitor, Disks, Settings, and Help.
+Accessories, Office, Graphics, Sound & Video, Internet, and System — including Terminal, Files, Software, Text Editor, Writer, Sheets, Notes, Calendar, Contacts, Calculator, Clocks, Weather, Maps, Web, Photos, Paint, Music, Videos, Screenshot, System Monitor, Disks, Settings, Users, Containers, and Help.
 
 Open **Software** from the dock, or Super / the grid icon for the launcher.
 
@@ -41,15 +67,6 @@ A container is a process with extra kernel isolation (namespaces + cgroups) — 
 - Wasm tab can boot a real converted Debian image via [container2wasm](https://github.com/container2wasm/container2wasm) (~200 MB, heavy on iPhone)
 
 This is a teaching runtime, not runc. The kernel is still the host session.
-
-## Run it
-
-```bash
-npm install
-npm run dev
-```
-
-Then open the app, add it to the iPhone Home Screen, and dock the phone.
 
 ## License
 

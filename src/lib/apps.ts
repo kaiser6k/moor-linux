@@ -301,3 +301,4 @@ export const WALLPAPERS = [
 export type WallpaperId = (typeof WALLPAPERS)[number]["id"];
 
 export const GITHUB_URL = "https://github.com/kaiser6k/moor-linux";
+export const DOCS_URL = "https://github.com/kaiser6k/moor-linux/blob/main/docs/self-host.md";

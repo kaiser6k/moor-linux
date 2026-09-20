@@ -1,4 +1,4 @@
-import { GITHUB_URL } from "@/lib/apps";
+import { DOCS_URL, GITHUB_URL } from "@/lib/apps";
 
 const SECTIONS = [
   {
@@ -14,8 +14,8 @@ const SECTIONS = [
     body: "Files, Photos, Music, and Videos can import from the camera roll and Files app. Imports live in this session (IndexedDB) until you save them out.",
   },
   {
-    title: "Users",
-    body: "You log in as moor, not root. Click your name in the top bar to switch accounts, lock, or open Users. su and sudo work in the terminal. Don't stay superuser.",
+    title: "Host your own",
+    body: "Moor is MIT. Clone the GitHub repo, copy env.example to .env, npm install, npm run dev — or docker compose up. HTTPS in front if you want it on an iPhone Home Screen.",
   },
 ];
 
@@ -34,6 +34,9 @@ export function HelpApp() {
       </ul>
       <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="mt-6 inline-block text-sm text-primary">
         Source on GitHub — free for everyone
+      </a>
+      <a href={DOCS_URL} target="_blank" rel="noreferrer" className="mt-2 block text-sm text-primary">
+        Set up your own instance
       </a>
     </div>
   );
