@@ -24,6 +24,7 @@ export const APP_IDS = [
   "contacts",
   "screenshot",
   "containers",
+  "users",
 ] as const;
 
 export type AppId = (typeof APP_IDS)[number];
@@ -280,6 +281,15 @@ export const APP_META: Record<AppId, AppMeta> = {
     dock: false,
     category: "system",
     blurb: "Namespaces, images, exec — userspace runtime",
+  },
+  users: {
+    title: "Users",
+    w: 720,
+    h: 520,
+    singleton: true,
+    dock: false,
+    category: "system",
+    blurb: "Accounts, switch user, sudo — not root all day",
   },
 };
 

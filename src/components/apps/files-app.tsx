@@ -2,9 +2,9 @@ import { useRef, useState } from "react";
 import { ChevronRight, FileText, Folder, Home, Image, Music, Video } from "lucide-react";
 import { AppShell, BarBtn } from "@/components/app-shell";
 import { isAudioName, isImageName, isVideoName, fileToContent, saveToPhone } from "@/lib/device";
-import { HOME, baseName, listDir, parentPath, resolvePath } from "@/lib/fs";
+import { baseName, listDir, parentPath, resolvePath } from "@/lib/fs";
 import { appForPath } from "@/lib/open-path";
-import { useMoor } from "@/lib/store";
+import { activeUser, useMoor } from "@/lib/store";
 
 export function FilesApp() {
   const fs = useMoor((s) => s.fs);
@@ -12,12 +12,14 @@ export function FilesApp() {
   const writeFile = useMoor((s) => s.writeFile);
   const mkdir = useMoor((s) => s.mkdir);
   const remove = useMoor((s) => s.remove);
-  const [path, setPath] = useState(HOME);
+  const home = useMoor((s) => activeUser(s).home);
+  const [path, setPath] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const here = path ?? home;
   const [status, setStatus] = useState<string | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
-  const entries = listDir(fs, path) ?? [];
-  const crumbs = path === "/" ? [""] : path.split("/").filter(Boolean);
+  const entries = listDir(fs, here) ?? [];
+  const crumbs = here === "/" ? [""] : here.split("/").filter(Boolean);
 
   function iconFor(name: string, dir: boolean) {
     if (dir) return Folder;
@@ -33,18 +35,18 @@ export function FilesApp() {
     for (const file of Array.from(files)) {
       try {
         const content = await fileToContent(file);
-        writeFile(`${path}/${file.name.replace(/[/\\]/g, "-")}`, content);
+        writeFile(`${here}/${file.name.replace(/[/\\]/g, "-")}`, content);
         n += 1;
       } catch (err) {
         setStatus(err instanceof Error ? err.message : "Import failed");
       }
     }
-    if (n) setStatus(`Imported ${n} file${n === 1 ? "" : "s"} into ${path}`);
+    if (n) setStatus(`Imported ${n} file${n === 1 ? "" : "s"} into ${here}`);
   }
 
   async function saveSelected() {
     if (!selected) return;
-    const node = entries.find((e) => resolvePath(path, e.name) === selected)?.node;
+    const node = entries.find((e) => resolvePath(here, e.name) === selected)?.node;
     if (!node || node.kind !== "file") {
       setStatus("Select a file to save onto the phone");
       return;
@@ -61,7 +63,7 @@ export function FilesApp() {
             type="button"
             className="rounded-sm p-1 text-muted hover:bg-overlay hover:text-fg"
             onClick={() => {
-              setPath(HOME);
+              setPath(home);
               setSelected(null);
             }}
             aria-label="Home"
@@ -92,7 +94,7 @@ export function FilesApp() {
             onClick={() => {
               const name = window.prompt("Folder name");
               if (!name) return;
-              mkdir(resolvePath(path, name.trim()));
+              mkdir(resolvePath(here, name.trim()));
             }}
           >
             New folder
@@ -127,12 +129,12 @@ export function FilesApp() {
     >
       {status ? <p className="border-b border-border px-3 py-2 text-xs text-muted">{status}</p> : null}
       <ul className="grid grid-cols-2 gap-1 p-3 sm:grid-cols-3">
-        {path !== "/" ? (
+        {here !== "/" ? (
           <li>
             <button
               type="button"
               onClick={() => {
-                setPath(parentPath(path));
+                setPath(parentPath(here));
                 setSelected(null);
               }}
               className="flex w-full items-center gap-2 rounded-sm px-2 py-2 text-left text-sm hover:bg-overlay"
@@ -143,7 +145,7 @@ export function FilesApp() {
           </li>
         ) : null}
         {entries.map((entry) => {
-          const next = resolvePath(path, entry.name);
+          const next = resolvePath(here, entry.name);
           const Icon = iconFor(entry.name, entry.node.kind === "dir");
           const active = selected === next;
           return (

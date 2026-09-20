@@ -1,3 +1,5 @@
+import { DEFAULT_USERS, groupText, passwdText } from "./users";
+
 export type FsFile = { kind: "file"; content: string };
 export type FsDir = { kind: "dir"; children: Record<string, FsNode> };
 export type FsNode = FsFile | FsDir;
@@ -111,14 +113,30 @@ export function createDefaultFs(): FsDir {
           },
         },
       },
+      root: {
+        kind: "dir",
+        children: {
+          ".profile": {
+            kind: "file",
+            content: "# root home — use su / sudo, don't stay here.\n",
+          },
+        },
+      },
+      tmp: { kind: "dir", children: {} },
       etc: {
         kind: "dir",
         children: {
           hostname: { kind: "file", content: "iphone\n" },
           "os-release": { kind: "file", content: OS_RELEASE },
+          passwd: { kind: "file", content: passwdText(DEFAULT_USERS) },
+          group: { kind: "file", content: groupText(DEFAULT_USERS) },
+          sudoers: {
+            kind: "file",
+            content: "root ALL=(ALL) ALL\n%sudo ALL=(ALL) NOPASSWD: ALL\n",
+          },
           motd: {
             kind: "file",
-            content: "Moor Linux 1.1 — session on a docked iPhone display.\nType `help` or `neofetch`.\n",
+            content: "Moor Linux 1.2 — logged in as a regular user. sudo when you need root.\nType `help` or `neofetch`.\n",
           },
         },
       },
@@ -170,6 +188,8 @@ export const STANDARD_DIRS = [
   `${HOME}/Videos`,
   `${HOME}/Notes`,
   `${HOME}/Templates`,
+  "/root",
+  "/tmp",
 ];
 
 export function migrateFs(root: FsDir): FsDir {
@@ -188,9 +208,9 @@ export function normalizePath(path: string): string {
   return "/" + parts.join("/");
 }
 
-export function resolvePath(cwd: string, input?: string): string {
-  if (!input || input === "~") return HOME;
-  if (input.startsWith("~/")) return normalizePath(`${HOME}/${input.slice(2)}`);
+export function resolvePath(cwd: string, input?: string, home = HOME): string {
+  if (!input || input === "~") return home;
+  if (input.startsWith("~/")) return normalizePath(`${home}/${input.slice(2)}`);
   if (input.startsWith("/")) return normalizePath(input);
   return normalizePath(`${cwd}/${input}`);
 }

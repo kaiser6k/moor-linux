@@ -13,6 +13,18 @@ import {
 } from "./fs";
 import { makeContainer, type Ctr, type ImageId } from "./containers";
 import { idbStorage } from "./idb";
+import {
+  DEFAULT_USER,
+  DEFAULT_USERS,
+  canWritePath,
+  findUser,
+  groupText,
+  makeUser,
+  migrateUsers,
+  passwdText,
+  validUsername,
+  type OsUser,
+} from "./users";
 
 export type PhoneTab = "home" | "display" | "session" | "about";
 
@@ -44,6 +56,9 @@ type MoorState = {
   launcherOpen: boolean;
   cascade: number;
   containers: Ctr[];
+  users: OsUser[];
+  currentUser: string;
+  locked: boolean;
   startSession: (opts?: { skipBoot?: boolean }) => void;
   endSession: () => void;
   finishBoot: () => void;
@@ -59,16 +74,45 @@ type MoorState = {
   resizeWindow: (id: string, w: number, h: number) => void;
   toggleMax: (id: string) => void;
   toggleMin: (id: string) => void;
-  writeFile: (path: string, content: string) => void;
-  mkdir: (path: string) => void;
-  remove: (path: string) => void;
+  writeFile: (path: string, content: string) => boolean;
+  mkdir: (path: string) => boolean;
+  remove: (path: string) => boolean;
   resetFs: () => void;
   runContainer: (image: ImageId, name?: string) => Ctr;
   stopContainer: (id: string) => void;
   removeContainer: (id: string) => void;
   setContainerCwd: (id: string, cwd: string) => void;
   touchContainer: (id: string) => void;
+  switchUser: (name: string, password?: string) => { ok: boolean; needPassword?: boolean; error?: string };
+  addUser: (name: string, opts?: { gecos?: string; sudo?: boolean; password?: string }) => { ok: boolean; error?: string };
+  setUserPassword: (name: string, password: string) => { ok: boolean; error?: string };
+  setUserSudo: (name: string, sudo: boolean) => { ok: boolean; error?: string };
+  removeUser: (name: string) => { ok: boolean; error?: string };
+  lockSession: () => void;
+  unlockSession: (name: string, password?: string) => { ok: boolean; needPassword?: boolean; error?: string };
 };
+
+export function activeUser(state: { users: OsUser[]; currentUser: string }): OsUser {
+  return findUser(state.users, state.currentUser) ?? state.users.find((u) => u.name === DEFAULT_USER) ?? DEFAULT_USERS[1];
+}
+
+function syncAccounts(fs: FsDir, users: OsUser[]) {
+  writeFileAt(fs, "/etc/passwd", passwdText(users));
+  writeFileAt(fs, "/etc/group", groupText(users));
+  mkdirp(fs, "/root");
+  mkdirp(fs, "/tmp");
+  for (const u of users) {
+    if (u.uid === 0) continue;
+    mkdirp(fs, u.home);
+    mkdirp(fs, `${u.home}/Desktop`);
+    mkdirp(fs, `${u.home}/Documents`);
+    mkdirp(fs, `${u.home}/Downloads`);
+  }
+}
+
+function isRootish(user: OsUser) {
+  return user.uid === 0 || user.sudo;
+}
 
 let bootTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -123,6 +167,9 @@ export const useMoor = create<MoorState>()(
       launcherOpen: false,
       cascade: 2,
       containers: [],
+      users: DEFAULT_USERS.map((u) => ({ ...u, groups: [...u.groups] })),
+      currentUser: DEFAULT_USER,
+      locked: false,
       startSession: (opts) => {
         const { hasBooted } = get();
         if (bootTimer) clearTimeout(bootTimer);
@@ -258,24 +305,33 @@ export const useMoor = create<MoorState>()(
             focusedId: minimizing ? s.windows.find((w) => w.id !== id && !w.minimized)?.id ?? null : id,
           };
         }),
-      writeFile: (path, content) =>
-        set((s) => {
-          const fs = cloneFs(s.fs);
-          writeFileAt(fs, path, content);
-          return { fs };
-        }),
-      mkdir: (path) =>
-        set((s) => {
-          const fs = cloneFs(s.fs);
-          mkdirp(fs, path);
-          return { fs };
-        }),
-      remove: (path) =>
-        set((s) => {
-          const fs = cloneFs(s.fs);
-          removePath(fs, path);
-          return { fs };
-        }),
+      writeFile: (path, content) => {
+        const s = get();
+        const user = activeUser(s);
+        if (!canWritePath(user, path)) return false;
+        const fs = cloneFs(s.fs);
+        writeFileAt(fs, path, content);
+        set({ fs });
+        return true;
+      },
+      mkdir: (path) => {
+        const s = get();
+        const user = activeUser(s);
+        if (!canWritePath(user, path)) return false;
+        const fs = cloneFs(s.fs);
+        mkdirp(fs, path);
+        set({ fs });
+        return true;
+      },
+      remove: (path) => {
+        const s = get();
+        const user = activeUser(s);
+        if (!canWritePath(user, path)) return false;
+        const fs = cloneFs(s.fs);
+        removePath(fs, path);
+        set({ fs });
+        return true;
+      },
       resetFs: () => set({ fs: createDefaultFs(), cwd: HOME }),
       runContainer: (image, name) => {
         const ctr = makeContainer(image, name);
@@ -299,15 +355,97 @@ export const useMoor = create<MoorState>()(
         set((s) => ({
           containers: s.containers.map((c) => (c.id === id ? { ...c } : c)),
         })),
+      switchUser: (name, password) => {
+        const s = get();
+        const user = findUser(s.users, name);
+        if (!user) return { ok: false, error: `Unknown user: ${name}` };
+        if (user.password) {
+          if (password === undefined) return { ok: false, needPassword: true };
+          if (password !== user.password) return { ok: false, error: "Authentication failure" };
+        }
+        set({ currentUser: user.name, cwd: user.home, locked: false });
+        return { ok: true };
+      },
+      addUser: (name, opts) => {
+        const s = get();
+        const actor = activeUser(s);
+        if (!isRootish(actor)) return { ok: false, error: "Only root or sudo can add users" };
+        const trimmed = name.trim().toLowerCase();
+        if (!validUsername(trimmed)) return { ok: false, error: "Invalid username" };
+        if (findUser(s.users, trimmed)) return { ok: false, error: "User exists" };
+        const user = makeUser(trimmed, s.users, opts);
+        const users = [...s.users, user];
+        const fs = cloneFs(s.fs);
+        syncAccounts(fs, users);
+        set({ users, fs });
+        return { ok: true };
+      },
+      setUserPassword: (name, password) => {
+        const s = get();
+        const actor = activeUser(s);
+        if (actor.name !== name && !isRootish(actor)) return { ok: false, error: "Permission denied" };
+        if (!findUser(s.users, name)) return { ok: false, error: "Unknown user" };
+        set({
+          users: s.users.map((u) => (u.name === name ? { ...u, password } : u)),
+        });
+        return { ok: true };
+      },
+      setUserSudo: (name, sudo) => {
+        const s = get();
+        if (!isRootish(activeUser(s))) return { ok: false, error: "Permission denied" };
+        if (name === "root") return { ok: false, error: "root always has sudo" };
+        const users = s.users.map((u) =>
+          u.name === name
+            ? {
+                ...u,
+                sudo,
+                groups: sudo
+                  ? [...new Set([...u.groups.filter((g) => g !== "sudo"), "sudo"])]
+                  : u.groups.filter((g) => g !== "sudo"),
+              }
+            : u,
+        );
+        const fs = cloneFs(s.fs);
+        syncAccounts(fs, users);
+        set({ users, fs });
+        return { ok: true };
+      },
+      removeUser: (name) => {
+        const s = get();
+        if (!isRootish(activeUser(s))) return { ok: false, error: "Permission denied" };
+        if (name === "root" || name === "moor") return { ok: false, error: "Cannot remove system user" };
+        if (name === s.currentUser) return { ok: false, error: "Cannot remove the active user" };
+        if (!findUser(s.users, name)) return { ok: false, error: "Unknown user" };
+        const users = s.users.filter((u) => u.name !== name);
+        const fs = cloneFs(s.fs);
+        syncAccounts(fs, users);
+        set({ users, fs });
+        return { ok: true };
+      },
+      lockSession: () => set({ locked: true, launcherOpen: false }),
+      unlockSession: (name, password) => get().switchUser(name, password),
     }),
     {
       name: "moor-v1",
       skipHydration: true,
       storage: createJSONStorage(() => idbStorage),
-      partialize: (s) => ({ fs: s.fs, wallpaperId: s.wallpaperId, containers: s.containers }),
+      partialize: (s) => ({
+        fs: s.fs,
+        wallpaperId: s.wallpaperId,
+        containers: s.containers,
+        users: s.users,
+        currentUser: s.currentUser === "root" ? DEFAULT_USER : s.currentUser,
+      }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         state.fs = migrateFs(state.fs);
+        state.users = migrateUsers(state.users);
+        if (!findUser(state.users, state.currentUser) || state.currentUser === "root") {
+          state.currentUser = DEFAULT_USER;
+        }
+        const user = findUser(state.users, state.currentUser);
+        if (user) state.cwd = user.home;
+        syncAccounts(state.fs, state.users);
       },
     },
   ),

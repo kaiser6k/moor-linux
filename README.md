@@ -26,6 +26,10 @@ Accessories, Office, Graphics, Sound & Video, Internet, and System — including
 
 Open **Software** from the dock, or Super / the grid icon for the launcher.
 
+## Users
+
+The session starts as **moor** (uid 1000), not root. Click the username in the top bar to switch, lock, or open **Users**. Add accounts, set passwords, and grant sudo. `su` / `sudo` work in the terminal. Reloading drops you back to a regular user if you were root.
+
 ## Containers
 
 A container is a process with extra kernel isolation (namespaces + cgroups) — not a VM. iOS will not let an app call `clone(CLONE_NEWNS|…)`, so Moor ships a **userspace runtime**:

@@ -6,10 +6,10 @@ export function WelcomeApp() {
   const openApp = useMoor((s) => s.openApp);
   return (
     <div className="flex h-full flex-col bg-bg p-6">
-      <p className="text-xs font-medium tracking-widest text-primary uppercase">Moor Linux 1.1</p>
+      <p className="text-xs font-medium tracking-widest text-primary uppercase">Moor Linux 1.2</p>
       <h1 className="mt-2 text-2xl font-semibold">You're docked.</h1>
       <p className="mt-3 text-sm leading-relaxed text-muted">
-        This session is the Linux desktop that comes up when your iPhone is connected to a display. Save files onto the
+        Signed in as a regular user — not root. Click your name in the top bar to switch accounts. Save files onto the
         phone from Files, and open Software for the full distro.
       </p>
       <ul className="mt-6 space-y-2">

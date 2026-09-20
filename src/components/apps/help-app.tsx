@@ -14,8 +14,8 @@ const SECTIONS = [
     body: "Files, Photos, Music, and Videos can import from the camera roll and Files app. Imports live in this session (IndexedDB) until you save them out.",
   },
   {
-    title: "Containers",
-    body: "Software → Containers. Run alpine/debian/python with isolated mount, hostname, and PIDs. Exec opens a namespaced shell. The Wasm tab can boot a real converted Debian image (heavy). iOS cannot create Linux namespaces — this is userspace, not runc.",
+    title: "Users",
+    body: "You log in as moor, not root. Click your name in the top bar to switch accounts, lock, or open Users. su and sudo work in the terminal. Don't stay superuser.",
   },
 ];
 

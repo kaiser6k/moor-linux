@@ -12,6 +12,8 @@ export function SettingsApp() {
   const reboot = useMoor((s) => s.reboot);
   const fs = useMoor((s) => s.fs);
   const writeFile = useMoor((s) => s.writeFile);
+  const currentUser = useMoor((s) => s.currentUser);
+  const openApp = useMoor((s) => s.openApp);
   const [status, setStatus] = useState<string | null>(null);
 
   async function exportHome() {
@@ -86,7 +88,7 @@ export function SettingsApp() {
         <dl className="mt-3 space-y-2 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted">User</dt>
-            <dd>moor</dd>
+            <dd>{currentUser}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">Host</dt>
@@ -94,9 +96,16 @@ export function SettingsApp() {
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">Distro</dt>
-            <dd>Moor Linux 1.1</dd>
+            <dd>Moor Linux 1.2</dd>
           </div>
         </dl>
+        <button
+          type="button"
+          onClick={() => openApp("users")}
+          className="mt-3 rounded-md bg-overlay px-3 py-2 text-sm"
+        >
+          Users & groups
+        </button>
       </section>
       <div className="mt-6 flex gap-2">
         <button type="button" onClick={reboot} className="rounded-md bg-overlay px-3 py-2 text-sm">

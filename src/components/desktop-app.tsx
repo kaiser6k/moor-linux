@@ -10,6 +10,8 @@ import { CalendarApp } from "@/components/apps/calendar-app";
 import { ClockApp } from "@/components/apps/clock-app";
 import { ContactsApp } from "@/components/apps/contacts-app";
 import { ContainersApp } from "@/components/apps/containers-app";
+import { UsersApp } from "@/components/apps/users-app";
+import { LockScreen } from "@/components/lock-screen";
 import { DiskApp } from "@/components/apps/disk-app";
 import { EditorApp } from "@/components/apps/editor-app";
 import { FilesApp } from "@/components/apps/files-app";
@@ -58,6 +60,7 @@ const BODIES: Record<AppId, (win: Win) => ReactNode> = {
   contacts: () => <ContactsApp />,
   screenshot: () => <ScreenshotApp />,
   containers: () => <ContainersApp />,
+  users: () => <UsersApp />,
 };
 
 function AppBody({ win }: { win: Win }) {
@@ -71,6 +74,8 @@ export function Desktop({ compact }: { compact: boolean }) {
   const launcherOpen = useMoor((s) => s.launcherOpen);
   const setLauncherOpen = useMoor((s) => s.setLauncherOpen);
   const openApp = useMoor((s) => s.openApp);
+  const locked = useMoor((s) => s.locked);
+  const lockSession = useMoor((s) => s.lockSession);
   const paper = WALLPAPERS.find((w) => w.id === wallpaperId);
 
   useEffect(() => {
@@ -85,10 +90,14 @@ export function Desktop({ compact }: { compact: boolean }) {
         e.preventDefault();
         openApp("terminal");
       }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "l") {
+        e.preventDefault();
+        lockSession();
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [openApp, setLauncherOpen]);
+  }, [openApp, setLauncherOpen, lockSession]);
 
   return (
     <div className="relative h-dvh overflow-hidden bg-crust text-fg">
@@ -109,6 +118,7 @@ export function Desktop({ compact }: { compact: boolean }) {
       {launcherOpen ? <Launcher /> : null}
       <Dock />
       {booting ? <BootScreen /> : null}
+      {locked ? <LockScreen /> : null}
     </div>
   );
 }

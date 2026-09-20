@@ -24,6 +24,7 @@ import {
   Sheet,
   SquareTerminal,
   StickyNote,
+  Users,
   Video,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -55,6 +56,7 @@ export const APP_ICONS: Record<AppId, LucideIcon> = {
   contacts: Contact,
   screenshot: Camera,
   containers: Container,
+  users: Users,
 };
 
 export const LAUNCHER_ICON = LayoutGrid;

@@ -11,13 +11,16 @@ import {
   type FsDir,
   writeFile,
 } from "./fs";
+import { canWritePath, type OsUser } from "./users";
 
 export type Chunk = { t: string; c?: "p" | "m" | "d" | "o" | "f" | "w" };
 
 export type ShellAction =
   | { type: "open"; appId: AppId; path?: string }
   | { type: "reboot" }
-  | { type: "exit" };
+  | { type: "exit" }
+  | { type: "su"; user: string; login?: boolean }
+  | { type: "sudo"; rest: string };
 
 export type ShellResult = {
   chunks: Chunk[];
@@ -34,6 +37,8 @@ export type ShellCtx = {
   user?: string;
   image?: string;
   pids?: { pid: number; cmd: string }[];
+  account?: OsUser;
+  elevated?: boolean;
 };
 
 const COMMANDS = [
@@ -77,10 +82,27 @@ const COMMANDS = [
   "unshare",
   "python",
   "python3",
+  "id",
+  "groups",
+  "su",
+  "passwd",
+  "useradd",
+  "adduser",
 ] as const;
 
 function line(text: string, c?: Chunk["c"]): Chunk[] {
   return [{ t: text + "\n", c }];
+}
+
+function rp(ctx: ShellCtx, input?: string) {
+  return resolvePath(ctx.cwd, input, ctx.account?.home ?? HOME);
+}
+
+function denyWrite(ctx: ShellCtx, path: string): ShellResult | null {
+  if (ctx.image || ctx.elevated) return null;
+  if (!ctx.account) return null;
+  if (canWritePath(ctx.account, path)) return null;
+  return { chunks: line(`${path}: Permission denied`, "d") };
 }
 
 function joinChunks(...parts: Chunk[][]): Chunk[] {
@@ -108,16 +130,19 @@ function treeWalk(fs: FsDir, path: string, prefix: string, acc: Chunk[]) {
   });
 }
 
-function neofetch(): Chunk[] {
+function neofetch(ctx: ShellCtx): Chunk[] {
   const art = ["      ▄▄▄▄▄", "    ▄█▀   ▀█▄", "    █  ● ●  █", "    ▀█▄ ▄ ▄█▀", "      ▀█▄█▀"];
   const chunks: Chunk[] = art.map((row) => ({ t: row + "\n", c: "p" as const }));
   chunks.push({ t: "\n" });
+  const user = ctx.user ?? "moor";
+  const host = ctx.hostname ?? "iphone";
   const info: [string, string][] = [
-    ["moor@iphone", ""],
+    [`${user}@${host}`, ""],
     ["-----------", ""],
-    ["OS: ", "Moor Linux 1.1 (docked)"],
+    ["OS: ", "Moor Linux 1.2 (docked)"],
     ["Host: ", "iPhone · external display"],
     ["Kernel: ", "6.8.0-moor-wasm"],
+    ["User: ", ctx.account?.uid === 0 ? "root (superuser)" : `${user} (uid ${ctx.account?.uid ?? 1000})`],
     ["Shell: ", "msh 1.4.2"],
     ["DE: ", "Moor Shell"],
     ["WM: ", "moorwm (floating)"],
@@ -172,7 +197,7 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
         chunks: joinChunks(
           line("Moor shell — commands", "p"),
           line("help  clear  ls  cd  pwd  cat  echo  mkdir  touch  rm  tree"),
-          line("whoami  hostname  uname  date  neofetch  fortune  cowsay"),
+          line("whoami  id  groups  su  sudo  passwd  useradd"),
           line("open  code  vim  htop  docker  python  history  reboot  exit"),
         ),
       };
@@ -181,9 +206,17 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
     case "pwd":
       return { chunks: line(ctx.cwd) };
     case "whoami":
-      return { chunks: line(ctx.user ?? "moor") };
+      return { chunks: line(ctx.elevated ? "root" : ctx.user ?? "moor") };
     case "hostname":
       return { chunks: line(ctx.hostname ?? "iphone") };
+    case "id": {
+      const u = ctx.elevated ? { name: "root", uid: 0, gid: 0, groups: ["root"] } : ctx.account;
+      if (!u) return { chunks: line("uid=1000(moor) gid=1000(moor) groups=1000(moor),27(sudo)") };
+      const groups = u.groups.map((g, i) => `${u.gid + i}(${g})`).join(",");
+      return { chunks: line(`uid=${u.uid}(${u.name}) gid=${u.gid}(${u.name}) groups=${groups}`) };
+    }
+    case "groups":
+      return { chunks: line((ctx.account?.groups ?? ["moor", "sudo"]).join(" ")) };
     case "date":
       return { chunks: line(new Date().toString()) };
     case "uname":
@@ -201,7 +234,7 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
     case "history":
       return { chunks: ctx.history.map((h, i) => ({ t: `  ${i + 1}  ${h}\n` })) };
     case "neofetch":
-      return { chunks: neofetch() };
+      return { chunks: neofetch(ctx) };
     case "fortune": {
       const node = getNode(ctx.fs, "/usr/share/fortunes");
       const list =
@@ -213,7 +246,7 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
     case "cowsay":
       return { chunks: cowsay(args.join(" ")) };
     case "ls": {
-      const target = resolvePath(ctx.cwd, args.find((a) => !a.startsWith("-")));
+      const target = rp(ctx, args.find((a) => !a.startsWith("-")));
       const entries = listDir(ctx.fs, target);
       if (!entries) return { chunks: line(`ls: ${target}: No such directory`, "d") };
       const chunks: Chunk[] = [];
@@ -225,7 +258,7 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
       return { chunks };
     }
     case "tree": {
-      const target = resolvePath(ctx.cwd, args[0]);
+      const target = rp(ctx, args[0]);
       const node = getNode(ctx.fs, target);
       if (!node || node.kind !== "dir") return { chunks: line(`tree: ${target}: Not a directory`, "d") };
       const chunks: Chunk[] = [{ t: baseName(target) + "\n", c: "p" }];
@@ -233,7 +266,7 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
       return { chunks };
     }
     case "cd": {
-      const target = resolvePath(ctx.cwd, args[0]);
+      const target = rp(ctx, args[0]);
       const node = getNode(ctx.fs, target);
       if (!node) return { chunks: line(`cd: no such file or directory: ${target}`, "d") };
       if (node.kind !== "dir") return { chunks: line(`cd: not a directory: ${target}`, "d") };
@@ -241,7 +274,7 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
     }
     case "cat": {
       if (!args[0]) return { chunks: line("cat: missing file", "d") };
-      const target = resolvePath(ctx.cwd, args[0]);
+      const target = rp(ctx, args[0]);
       const node = getNode(ctx.fs, target);
       if (!node) return { chunks: line(`cat: ${args[0]}: No such file`, "d") };
       if (node.kind !== "file") return { chunks: line(`cat: ${args[0]}: Is a directory`, "d") };
@@ -250,13 +283,17 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
     }
     case "mkdir": {
       if (!args[0]) return { chunks: line("mkdir: missing operand", "d") };
-      const target = resolvePath(ctx.cwd, args[0]);
+      const target = rp(ctx, args[0]);
+      const denied = denyWrite(ctx, target);
+      if (denied) return denied;
       if (!mkdirp(ctx.fs, target)) return { chunks: line(`mkdir: cannot create ${args[0]}`, "d") };
       return { chunks: [] };
     }
     case "touch": {
       if (!args[0]) return { chunks: line("touch: missing file", "d") };
-      const target = resolvePath(ctx.cwd, args[0]);
+      const target = rp(ctx, args[0]);
+      const denied = denyWrite(ctx, target);
+      if (denied) return denied;
       const existing = getNode(ctx.fs, target);
       if (existing?.kind === "dir") return { chunks: line(`touch: ${args[0]} is a directory`, "d") };
       if (!existing) writeFile(ctx.fs, target, "");
@@ -264,7 +301,9 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
     }
     case "rm": {
       if (!args[0]) return { chunks: line("rm: missing operand", "d") };
-      const target = resolvePath(ctx.cwd, args[0]);
+      const target = rp(ctx, args[0]);
+      const denied = denyWrite(ctx, target);
+      if (denied) return denied;
       if (!removePath(ctx.fs, target)) return { chunks: line(`rm: ${args[0]}: No such file`, "d") };
       return { chunks: [] };
     }
@@ -298,6 +337,8 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
         screenshot: "screenshot",
         containers: "containers",
         docker: "containers",
+        users: "users",
+        user: "users",
         ".": "files",
       };
       const key = (args[0] ?? "files").toLowerCase();
@@ -308,7 +349,7 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
     case "code":
     case "vim":
     case "nano": {
-      const target = args[0] ? resolvePath(ctx.cwd, args[0]) : undefined;
+      const target = args[0] ? rp(ctx, args[0]) : undefined;
       return {
         chunks: line(`opening editor${target ? ` ${target}` : ""}`, "m"),
         action: { type: "open", appId: "editor", path: target },
@@ -344,8 +385,30 @@ export function runCommand(raw: string, ctx: ShellCtx): ShellResult {
       if (args[0] === "install")
         return { chunks: line(`Package ${args[1] ?? "(none)"} is a desktop app. Try \`open ${args[1] ?? "files"}\`.`, "w") };
       return { chunks: line("apt: try `apt update` or `apt install <name>`", "m") };
-    case "sudo":
-      return { chunks: line("moor: this docked session is already privileged", "w") };
+    case "sudo": {
+      if (!args[0]) return { chunks: line("usage: sudo <command>", "m") };
+      if (ctx.image || ctx.elevated || ctx.account?.uid === 0) return runCommand(args.join(" "), { ...ctx, elevated: true });
+      if (!ctx.account?.sudo) return { chunks: line("sudo: not in the sudoers file", "d") };
+      if (ctx.account.password) return { chunks: line("Password:", "m"), action: { type: "sudo", rest: args.join(" ") } };
+      return runCommand(args.join(" "), { ...ctx, elevated: true, user: "root" });
+    }
+    case "su": {
+      const login = args[0] === "-";
+      const target = login ? args[1] ?? "root" : args[0] ?? "root";
+      return { chunks: line(`switching to ${target}…`, "m"), action: { type: "su", user: target, login } };
+    }
+    case "passwd":
+      return {
+        chunks: line("Set passwords in Users (Activities → username → Users & groups).", "m"),
+        action: { type: "open", appId: "users" },
+      };
+    case "useradd":
+    case "adduser":
+      if (!args[0]) return { chunks: line("usage: useradd NAME", "m"), action: { type: "open", appId: "users" } };
+      return {
+        chunks: line("Use Users to create accounts (GUI).", "m"),
+        action: { type: "open", appId: "users" },
+      };
     case "curl":
       return { chunks: line("curl: (7) Failed to connect — docked session is local-first", "d") };
     case "ssh":

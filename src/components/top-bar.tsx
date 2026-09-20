@@ -2,13 +2,22 @@ import { useEffect, useState } from "react";
 import { Battery, Wifi, Volume2 } from "lucide-react";
 import { useMoor } from "@/lib/store";
 import { displayLabel } from "@/lib/display";
+import { cn } from "@/lib/utils";
 
 export function TopBar({ compact }: { compact: boolean }) {
   const launcherOpen = useMoor((s) => s.launcherOpen);
   const setLauncherOpen = useMoor((s) => s.setLauncherOpen);
   const endSession = useMoor((s) => s.endSession);
+  const currentUser = useMoor((s) => s.currentUser);
+  const users = useMoor((s) => s.users);
+  const switchUser = useMoor((s) => s.switchUser);
+  const lockSession = useMoor((s) => s.lockSession);
+  const openApp = useMoor((s) => s.openApp);
   const [clock, setClock] = useState("");
   const [sizeLabel, setSizeLabel] = useState("Display");
+  const [menu, setMenu] = useState(false);
+  const me = users.find((u) => u.name === currentUser);
+  const rootish = me?.uid === 0;
 
   useEffect(() => {
     const tick = () => {
@@ -52,7 +61,68 @@ export function TopBar({ compact }: { compact: boolean }) {
             </span>
           </>
         )}
-        {compact ? (
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setMenu((v) => !v)}
+            className={cn("rounded-sm px-2 py-0.5 font-medium hover:bg-overlay", rootish ? "text-warn" : "text-fg")}
+          >
+            {currentUser}
+          </button>
+          {menu ? (
+            <div className="absolute top-7 right-0 z-50 w-44 rounded-md border border-border bg-surface py-1 shadow-lg">
+              {users.map((u) => (
+                <button
+                  key={u.name}
+                  type="button"
+                  className="block w-full px-3 py-1.5 text-left text-xs text-fg hover:bg-overlay"
+                  onClick={() => {
+                    const result = switchUser(u.name);
+                    setMenu(false);
+                    if (!result.ok) openApp("users");
+                  }}
+                >
+                  {u.name === currentUser ? "• " : "  "}
+                  {u.name}
+                  {u.uid === 0 ? " (root)" : ""}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="block w-full px-3 py-1.5 text-left text-xs text-fg hover:bg-overlay"
+                onClick={() => {
+                  openApp("users");
+                  setMenu(false);
+                }}
+              >
+                Users & groups
+              </button>
+              <button
+                type="button"
+                className="block w-full px-3 py-1.5 text-left text-xs text-fg hover:bg-overlay"
+                onClick={() => {
+                  lockSession();
+                  setMenu(false);
+                }}
+              >
+                Lock
+              </button>
+              {compact ? (
+                <button
+                  type="button"
+                  className="block w-full px-3 py-1.5 text-left text-xs text-fg hover:bg-overlay"
+                  onClick={() => {
+                    endSession();
+                    setMenu(false);
+                  }}
+                >
+                  Undock
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+        {compact && !menu ? (
           <button type="button" onClick={endSession} className="rounded-sm px-2 py-0.5 text-fg hover:bg-overlay">
             Undock
           </button>
