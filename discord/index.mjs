@@ -94,6 +94,21 @@ function welcomeEmbed() {
     .setFooter({ text: "MIT · free for everyone" });
 }
 
+function inviteUrl() {
+  return `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&permissions=8&integration_type=0&scope=bot%20applications.commands`;
+}
+
+async function resolveGuild(client, guildId) {
+  if (!guildId) throw new Error("Run this in a server channel, not a DM.");
+  try {
+    const guild = await client.guilds.fetch(guildId);
+    await Promise.all([guild.channels.fetch(), guild.roles.fetch()]);
+    return guild;
+  } catch {
+    throw new Error(`The bot is not in this server. Open this invite (bot + Administrator):\n${inviteUrl()}`);
+  }
+}
+
 async function ensureRole(guild) {
   let role = guild.roles.cache.find((r) => r.name === "Docked");
   if (!role) {
@@ -119,6 +134,8 @@ async function ensureChannel(guild, name, topic) {
 }
 
 async function setupGuild(guild) {
+  if (!guild) throw new Error(`The bot is not in this server. Invite:\n${inviteUrl()}`);
+  if (!existsSync(ICON)) throw new Error(`Missing icon at ${ICON}`);
   const icon = readFileSync(ICON);
   await guild.setIcon(icon, "Moor mark");
   if (guild.name !== "Moor") await guild.setName("Moor", "Moor setup");
@@ -230,11 +247,17 @@ async function main() {
     try {
       if (interaction.commandName === "moor-setup") {
         await interaction.deferReply({ ephemeral: true });
-        const result = await setupGuild(interaction.guild);
+        const guild = await resolveGuild(interaction.client, interaction.guildId);
+        const result = await setupGuild(guild);
         await interaction.editReply(`Setup done. Welcome is <#${result.welcome}>. Role: <@&${result.role}>`);
       } else if (interaction.commandName === "moor-announce") {
+        const guild = await resolveGuild(interaction.client, interaction.guildId);
         const message = interaction.options.getString("message", true);
-        const channel = interaction.options.getChannel("channel") ?? interaction.channel;
+        const picked = interaction.options.getChannel("channel");
+        const channel =
+          (picked && "send" in picked ? picked : null) ??
+          guild.channels.cache.find((c) => c.id === interaction.channelId && c.isTextBased()) ??
+          guild.channels.cache.find((c) => c.name === "general" && c.isTextBased());
         if (!channel || !("send" in channel)) {
           await interaction.reply({ content: "Pick a text channel.", ephemeral: true });
           return;
@@ -242,7 +265,8 @@ async function main() {
         await channel.send({ content: message });
         await interaction.reply({ content: `Posted in ${channel}`, ephemeral: true });
       } else if (interaction.commandName === "moor-status") {
-        const info = statusPayload(interaction.guild);
+        const guild = await resolveGuild(interaction.client, interaction.guildId);
+        const info = statusPayload(guild);
         await interaction.reply({
           content: `**${info.name}**\nChannels: ${info.channels.join(" ")}\nRoles: ${info.roles.join(", ")}`,
           ephemeral: true,
